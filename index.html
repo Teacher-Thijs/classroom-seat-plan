@@ -882,7 +882,17 @@ const set = (k, v) => LS.setItem(k, JSON.stringify(v));
 let classes = get("classes");
 
 let seatplans = get("seatplans");
+Object.values(seatplans).forEach(plan => {
 
+    plan.forEach(seat => {
+
+        if (!seat.notes) {
+            seat.notes = [];
+        }
+
+    });
+
+});
 let bankCounts = get("bankCounts");
 
 let bankCols = get("bankCols");
