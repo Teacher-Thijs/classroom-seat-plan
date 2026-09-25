@@ -364,6 +364,32 @@ textarea {
 
 }
 
+.notes-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: white;
+}
+
+.notes-table th,
+.notes-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+.notes-table th {
+    background: #f0f0f0;
+}
+
+.notes-table tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.notes-table tr:hover {
+    background: #f5faff;
+}
+
 /* ---------- Modal ---------- */
 
 .modal-backdrop {
@@ -515,11 +541,9 @@ textarea {
 <!-- TAB NAV -->
 
 <div class="tab-nav" id="tabNav">
-
     <div class="active" data-tab="zitplan">Zitplan</div>
-
     <div data-tab="klassen">Klassenbeheer</div>
-
+    <div data-tab="notas">Nota's</div>
 </div>
 
 <!-- ZITPLAN -->
@@ -628,6 +652,20 @@ textarea {
 
         </button>
 
+    </div>
+
+</div>
+
+<div id="notas" class="tab">
+
+    <h2>Leerlingennota's</h2>
+
+    <button onclick="clearNotes()">
+        🧹 Alle nota's wissen
+    </button>
+
+    <div id="notesContainer"
+         style="margin-top:15px;">
     </div>
 
 </div>
@@ -786,6 +824,61 @@ textarea {
 
 </div>
 
+<div id="noteModalBackdrop" class="modal-backdrop">
+    <div class="modal">
+
+        <h2>Nota toevoegen</h2>
+
+        <p id="noteStudentName"></p>
+
+        <label>
+            <input type="checkbox" value="Huiswerk niet gemaakt">
+            Huiswerk niet gemaakt
+        </label><br>
+
+        <label>
+            <input type="checkbox" value="Materiaal niet in orde">
+            Materiaal niet in orde
+        </label><br>
+
+        <label>
+            <input type="checkbox" value="Storend gedrag">
+            Storend gedrag
+        </label><br>
+
+        <label>
+            <input type="checkbox" value="Niet opgelet">
+            Niet opgelet
+        </label><br>
+
+        <label>
+            <input type="checkbox" value="Te laat">
+            Te laat
+        </label><br><br>
+
+        <input
+            id="extraReason"
+            placeholder="Andere reden">
+
+        <div class="modal-buttons">
+
+            <button onclick="closeNoteModal()">
+                Annuleren
+            </button>
+
+            <button
+                class="primary-button"
+                onclick="saveNoteModal()">
+
+                Opslaan
+
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
 <script>
 
 /* ===== Opslag ===== */
@@ -807,15 +900,11 @@ let bankCols = get("bankCols");
 /* ===== Data ===== */
 
 const emptySeat = () => ({
-
     name: "",
-
     color: "white",
-
     book: true,
-
-    marked: false
-
+    marked: false,
+    notes: []
 });
 
 const DEFAULT_BANKS = 12;
@@ -829,6 +918,8 @@ let selectedSeatIndex = null;
 let highlightIndex = null;
 
 let editingClass = null;
+
+let currentNoteSeat = null;
 
 /* ===== DOM ===== */
 
@@ -1004,15 +1095,17 @@ function renderSeats() {
 
                 if (!s.name) return;
 
-                s.color =
+            const oldColor = s.color;
 
-                    s.color === "white" ? "yellow" :
+            s.color =
+                s.color === "white" ? "yellow" :
+                s.color === "yellow" ? "orange" :
+                s.color === "orange" ? "red" :
+                "white";
 
-                    s.color === "yellow" ? "orange" :
-
-                    s.color === "orange" ? "red" :
-
-                    "white";
+            if (oldColor !== "red" && s.color === "red") {
+                openNoteModal(s);
+            }
 
                 saveSeatplans();
 
@@ -2108,7 +2201,11 @@ function switchTab(tabName) {
 
     });
 
+    if (tabName === "notas") {
+    renderNotes();
 }
+}
+``
 
 /* ===== Backup / herstel ===== */
 
@@ -2215,34 +2312,31 @@ document.getElementById("backupInput").onchange = e => {
             const classNames = getSortedClassNames();
 
             currentClass = classNames.length > 0
+                ? classNames[0]
+                : null;
 
-            ? classNames[0]
-
-            : null;
+            /* Backup permanent opslaan */
+            saveStorageOnly();
 
             refreshClassList();
-
             loadClassSelect();
 
             if (currentClass) {
-
                 loadClass(currentClass);
-
             } else {
-
                 updateStudentEditor();
-
                 renderSeats();
 
                 setTimeout(() => {
-
                     showWelcome();
-
                 }, 100);
+            }
 
-}
+alert("Backup succesvol geladen!");
 
-            alert("Backup succesvol geladen!");
+/* Belangrijk: de ingeladen backup permanent opslaan */
+saveStorageOnly();
+
 
         } catch (err) {
 
@@ -2584,6 +2678,198 @@ function initializeApp() {
 
     loadClass(currentClass);
 
+}
+
+function openNoteModal(seat) {
+
+    currentNoteSeat = seat;
+
+    document.getElementById(
+        "noteStudentName"
+    ).textContent = seat.name;
+
+    document
+        .querySelectorAll(
+            '#noteModalBackdrop input[type="checkbox"]'
+        )
+        .forEach(cb => cb.checked = false);
+
+    document.getElementById(
+        "extraReason"
+    ).value = "";
+
+    document
+        .getElementById("noteModalBackdrop")
+        .classList.add("open");
+}
+
+function closeNoteModal() {
+
+    document
+        .getElementById("noteModalBackdrop")
+        .classList.remove("open");
+}
+
+function saveNoteModal() {
+
+    if (!currentNoteSeat) return;
+
+    if (!currentNoteSeat.notes) {
+        currentNoteSeat.notes = [];
+    }
+
+    const reasons = [];
+
+    document
+        .querySelectorAll(
+            '#noteModalBackdrop input[type="checkbox"\]:checked'
+        )
+        .forEach(cb => reasons.push(cb.value));
+
+    const extra =
+        document
+            .getElementById("extraReason")
+            .value
+            .trim();
+
+    if (extra) {
+        reasons.push(extra);
+    }
+
+    if (reasons.length > 0) {
+
+        currentNoteSeat.notes.push({
+
+    klas: currentClass,
+
+    date: new Date()
+        .toLocaleString("nl-BE", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        }),
+
+    reasons: reasons
+});
+
+        saveSeatplans();
+    }
+
+    closeNoteModal();
+}
+
+function renderNotes() {
+
+    const container =
+        document.getElementById("notesContainer");
+
+    if (!container) return;
+
+    let rows = "";
+
+    Object.keys(seatplans).forEach(className => {
+
+    seatplans[className].forEach(seat => {
+
+
+        if (
+            !seat.name ||
+            !seat.notes ||
+            seat.notes.length === 0
+        ) return;
+
+        seat.notes.forEach((note, index) => {
+
+            rows += `
+                <tr>
+                    <td>${note.date}</td>
+                    <td>${note.klas || className}</td>
+                    <td>${seat.name}</td>
+                    <td>${note.reasons.join(", ")}</td>
+                    <td>
+                        <button onclick="
+                            deleteNote(
+                                '${className}',
+                                '${seat.name}',
+                                ${index}
+                            )
+                        ">
+                        🗑️
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    });
+
+    });
+
+    if (!rows) {
+
+        container.innerHTML =
+            "<p>Geen nota's aanwezig.</p>";
+
+        return;
+    }
+
+    container.innerHTML = `
+        <table class="notes-table">
+
+            <thead>
+                <tr>
+                    <th>Datum / Uur</th>
+                    <th>Klas</th>
+                    <th>Leerling</th>
+                    <th>Reden</th>
+                    <th>Actie</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                ${rows}
+            </tbody>
+
+        </table>
+    `;
+}
+
+function deleteNote(className, studentName, index) {
+
+    const seat =
+        seatplans[className]
+        .find(s => s.name === studentName);
+
+    if (!seat) return;
+
+    seat.notes.splice(index, 1);
+
+    saveSeatplans();
+    renderNotes();
+}
+
+function clearNotes() {
+
+    if (
+        !confirm(
+            "Alle nota's verwijderen?"
+        )
+    ) return;
+
+    Object.keys(seatplans).forEach(className => {
+
+    seatplans[className].forEach(seat => {
+
+        seat.notes = [];
+
+    });
+
+});
+
+    saveSeatplans();
+
+    renderNotes();
 }
 
 initializeApp();
