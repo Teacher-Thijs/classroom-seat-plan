@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<boekje!DOCTYPE html>
 
 <html lang="nl">
 
@@ -1155,11 +1155,32 @@ function renderSeats() {
 
                 s.book = !s.book;
 
-                saveSeatplans();
+            // Boek niet bij → automatisch nota toevoegen
+            if (!s.book) {
 
-                renderSeats();
+            if (!s.notes) {
+                s.notes = [];
+            }
 
-            };
+            s.notes.push({
+                klas: currentClass,
+                date: new Date().toLocaleString("nl-BE", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+            }),
+            reasons: ["Boek niet bij"]
+        });
+
+    }
+
+    saveSeatplans();
+
+    renderSeats();
+
+};
 
             seat.append(name, book, cross);
 
