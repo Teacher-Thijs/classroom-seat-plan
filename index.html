@@ -555,7 +555,7 @@ textarea {
         <select id="classSelect"></select>
 
         <button onclick="resetColors()">Reset kleuren</button>
-
+        <button onclick="increaseAllStatuses()">Klassikale waarschuwing</button>
         <button onclick="randomStudent()">Willekeurige leerling</button>
 
         <button onclick="resetRandom()">Reset willekeurige</button>
@@ -1432,6 +1432,47 @@ function resetColors() {
 
     renderSeats();
 
+}
+function increaseAllStatuses() {
+
+    if (!currentClass || !seatplans[currentClass]) return;
+
+    seatplans[currentClass].forEach(s => {
+
+        if (!s.name) return; // lege plaatsen overslaan
+
+        const oldColor = s.color;
+
+        s.color =
+            s.color === "white" ? "yellow" :
+            s.color === "yellow" ? "orange" :
+            s.color === "orange" ? "red" :
+            "red"; // rood blijft rood
+
+        // Optioneel: nota openen bij rood
+        if (oldColor !== "red" && s.color === "red") {
+
+            if (!s.notes) {
+                s.notes = [];
+            }
+
+            s.notes.push({
+                klas: currentClass,
+                date: new Date().toLocaleString("nl-BE", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }),
+                reasons: ["Automatisch verhoogde status"]
+            });
+        }
+
+    });
+
+    saveSeatplans();
+    renderSeats();
 }
 
 function randomStudent() {
