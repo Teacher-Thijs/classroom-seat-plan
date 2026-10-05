@@ -480,7 +480,7 @@ textarea {
 
 }
 
-.modal-buttons {
+.modal-s {
 
     display: flex;
 
@@ -492,7 +492,7 @@ textarea {
 
 }
 
-.primary-button {
+.primary- {
 
     background: #007BFF;
 
@@ -502,7 +502,7 @@ textarea {
 
 }
 
-.danger-button {
+.danger- {
 
     background: #fff0f0;
 
@@ -554,11 +554,11 @@ textarea {
 
         <select id="classSelect"></select>
 
-        <button onclick="resetColors()">Reset kleuren</button>
-        <button onclick="increaseAllStatuses()">Klassikale waarschuwing</button>
+        < onclick="resetColors()">Reset kleuren</>
+        < onclick="increaseAllStatuses()">Klassikale waarschuwing</>
         <button onclick="randomStudent()">Willekeurige leerling</button>
         <button onclick="resetRandom()">Reset willekeurige</button>
-        <button onclick="makeGroups()">Maak groepjes</button>
+       
 
 
         <div class="toolbar-right">
@@ -1527,43 +1527,6 @@ function resetRandom() {
     renderSeats();
 
 }
-function makeGroups() {
-
-    if (!currentClass || !seatplans[currentClass]) return;
-
-    const grootte = parseInt(
-        prompt("Hoeveel leerlingen per groep?", "3")
-    );
-
-    if (!grootte || grootte < 2) return;
-
-    const leerlingen = seatplans[currentClass]
-        .filter(s => s.name)
-        .map(s => s.name);
-
-    for (let i = leerlingen.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [leerlingen[i], leerlingen[j]] =
-        [leerlingen[j], leerlingen[i]];
-    }
-
-    let resultaat = "";
-
-    let groepNr = 1;
-
-    for (let i = 0; i < leerlingen.length; i += grootte) {
-
-        resultaat +=
-            "Groep " + groepNr + "\n" +
-            leerlingen.slice(i, i + grootte).join("\n") +
-            "\n\n";
-
-        groepNr++;
-    }
-
-    alert(resultaat);
-}
-``
 
 /* ===== Aantal banken aanpassen ===== */
 
