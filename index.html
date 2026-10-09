@@ -1,905 +1,521 @@
-<boekje!DOCTYPE html>
-
+<!DOCTYPE html>
 <html lang="nl">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Klasmanager</title>
-
 <style>
-
 body {
-
     margin: 0;
-
     font-family: Arial, sans-serif;
-
     background: #f0f0f0;
-
 }
-
 /* ---------- Tabs ---------- */
-
 .tab-nav {
-
     display: flex;
-
     background: #333;
-
     color: white;
-
 }
-
 .tab-nav div {
-
     padding: 12px 20px;
-
     cursor: pointer;
-
 }
-
 .tab-nav .active {
-
     background: #555;
-
 }
-
 .tab {
-
     display: none;
-
     padding: 16px;
-
 }
-
 .tab.active {
-
     display: block;
-
 }
-
 /* ---------- Toolbar ---------- */
-
 .toolbar {
-
     display: flex;
-
     gap: 8px;
-
     flex-wrap: wrap;
-
     align-items: center;
-
     padding: 10px;
-
     background: #ddd;
-
     border-bottom: 2px solid #aaa;
-
 }
-
 button {
-
     border-radius: 12px;
-
     padding: 8px 12px;
-
     border: 1px solid #aaa;
-
     background: white;
-
     cursor: pointer;
-
     font-size: 14px;
-
     transition: background 0.2s, transform 0.1s;
-
 }
-
 button:hover {
-
     background: #f2f2f2;
-
 }
-
 button:active {
-
     transform: scale(0.96);
-
 }
-
 .toolbar-right {
-
     margin-left: auto;
-
     display: flex;
-
     gap: 8px;
-
     align-items: center;
-
 }
-
 .bank-count-group {
-
     display: flex;
-
     align-items: center;
-
     gap: 6px;
-
     background: #fff;
-
     border: 1px solid #aaa;
-
     border-radius: 12px;
-
     padding: 4px 10px;
-
 }
-
 .bank-count-group input {
-
     width: 50px;
-
     border: 1px solid #ccc;
-
     border-radius: 6px;
-
     padding: 4px;
-
 }
-
 /* ---------- Zitplan ---------- */
-
 .seat-plan {
-
     margin-top: 20px;
-
     display: grid;
-
     grid-template-columns: repeat(3, 220px);
-
     gap: 20px;
-
     justify-content: center;
-
 }
-
 .bank {
-
     display: flex;
-
     gap: 10px;
-
     padding: 8px;
-
     background: #fafafa;
-
     border-radius: 10px;
-
 }
-
 .seat {
-
     width: 100px;
-
     height: 100px;
-
     border: 1px solid #aaa;
-
     background: white;
-
     display: flex;
-
     position: relative;
-
     user-select: none;
-
     cursor: pointer;
-
     transition: transform 0.3s ease;
-
 }
-
 .seat.empty {
-
     opacity: 0.4;
-
 }
-
 .seat.yellow {
-
     background: yellow;
-
 }
-
 .seat.orange {
-
     background: #FF9800;
-
 }
-
 .seat.red {
-
     background: red;
-
 }
-
 .seat.selected {
-
     outline: 3px solid #007BFF;
-
 }
-
 .seat.highlight {
-
     transform: scale(1.3);
-
     z-index: 10;
-
     border: 3px solid #007BFF;
-
 }
-
 .name {
-
     flex: 1;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     font-weight: bold;
-
     pointer-events: none;
-
     text-align: center;
-
     padding: 4px;
-
 }
-
 .book {
-
     position: absolute;
-
     bottom: 4px;
-
     right: 4px;
-
     font-size: 18px;
-
     cursor: pointer;
-
 }
-
 .cross {
-
     position: absolute;
-
     bottom: 4px;
-
     left: 4px;
-
     font-size: 18px;
-
     display: none;
-
 }
-
 .seat.marked .cross {
-
     display: block;
-
 }
-
 /* ---------- Klassenbeheer ---------- */
-
 .class-item {
-
     background: white;
-
     border: 1px solid #aaa;
-
     padding: 10px;
-
     border-radius: 10px;
-
     margin-bottom: 6px;
-
     display: flex;
-
     justify-content: space-between;
-
     align-items: center;
-
 }
-
 .class-info {
-
     display: flex;
-
     flex-direction: column;
-
     gap: 3px;
-
 }
-
 .class-details {
-
     color: #777;
-
     font-size: 12px;
-
 }
-
 textarea {
-
     width: 300px;
-
     max-width: 100%;
-
 }
-
 #classList {
-
     display: grid;
-
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-
     gap: 10px;
-
 }
-
 .new-class-row {
-
     margin-bottom: 10px;
-
 }
-
 .notes-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 15px;
     background: white;
 }
-
 .notes-table th,
 .notes-table td {
     border: 1px solid #ccc;
     padding: 10px;
     text-align: left;
 }
-
 .notes-table th {
     background: #f0f0f0;
 }
-
 .notes-table tr:nth-child(even) {
     background: #fafafa;
 }
-
 .notes-table tr:hover {
     background: #f5faff;
 }
-
 /* ---------- Modal ---------- */
-
 .modal-backdrop {
-
     position: fixed;
-
     inset: 0;
-
     background: rgba(0, 0, 0, 0.45);
-
     display: none;
-
     align-items: center;
-
     justify-content: center;
-
     z-index: 1000;
-
     padding: 20px;
-
 }
-
 .modal-backdrop.open {
-
     display: flex;
-
 }
-
 .modal {
-
     background: white;
-
     width: min(620px, 100%);
-
     max-height: 90vh;
-
     overflow-y: auto;
-
     border-radius: 16px;
-
     box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-
     padding: 22px;
-
 }
-
 .modal h2 {
-
     margin-top: 0;
-
 }
-
 .form-row {
-
     display: grid;
-
     grid-template-columns: 180px 1fr;
-
     gap: 12px;
-
     align-items: center;
-
     margin-bottom: 12px;
-
 }
-
 .form-row input,
-
 .form-row textarea {
-
     box-sizing: border-box;
-
     width: 100%;
-
     padding: 8px;
-
     border: 1px solid #bbb;
-
     border-radius: 8px;
-
 }
-
 .form-row textarea {
-
     min-height: 180px;
-
     resize: vertical;
-
 }
-
 .modal-buttons {
-
     display: flex;
-
     justify-content: flex-end;
-
     gap: 8px;
-
     margin-top: 18px;
-
 }
-
 .primary-button {
-
     background: #007BFF;
-
     color: white;
-
     border-color: #007BFF;
-
 }
-
 .danger-button {
-
     background: #fff0f0;
-
     border-color: #d66;
-
+}
+@media (max-width: 700px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+    .seat-plan {
+        grid-template-columns: repeat(1, 220px) !important;
+    }
 }
 
-@media (max-width: 700px) {
-
-    .form-row {
-
-        grid-template-columns: 1fr;
-
-        gap: 5px;
-
-    }
-
-    .seat-plan {
-
-        grid-template-columns: repeat(1, 220px) !important;
-
-    }
-
+/* ---------- Groepen ---------- */
+.groups-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: #fff;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+}
+.groups-toolbar input[type="number"] {
+    width: 70px;
+    padding: 8px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+}
+.groups-toolbar select { padding: 8px; border-radius: 8px; border: 1px solid #bbb; }
+.groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+}
+.group-card {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    padding: 14px;
+    break-inside: avoid;
+}
+.group-card h3 { margin: 0 0 10px; }
+.group-student {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 0;
+    border-top: 1px solid #eee;
+}
+.group-student span { overflow-wrap: anywhere; }
+.group-student select { max-width: 110px; padding: 5px; }
+#groupsMessage { min-height: 1.2em; }
+@media print {
+    body * { visibility: hidden !important; }
+    #groepen, #groepen * { visibility: visible !important; }
+    #groepen { display: block !important; position: absolute; inset: 0; width: auto; padding: 0; background: white; }
+    #groepen .groups-toolbar, #groepen #groupsMessage { display: none !important; }
+    #groepen h2 { margin-top: 0; }
+    #groupsContainer { display: block; }
+    .groups-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .group-card { border: 1px solid #777; }
+    .group-student select { display: none !important; }
 }
 
 </style>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 </head>
-
 <body>
 
 <!-- TAB NAV -->
-
 <div class="tab-nav" id="tabNav">
     <div class="active" data-tab="zitplan">Zitplan</div>
     <div data-tab="klassen">Klassenbeheer</div>
     <div data-tab="notas">Nota's</div>
+    <div data-tab="groepen">Groepen</div>
 </div>
 
 <!-- ZITPLAN -->
-
 <div id="zitplan" class="tab active">
-
     <div class="toolbar">
-
         <select id="classSelect"></select>
-
         <button onclick="resetColors()">Reset kleuren</button>
         <button onclick="increaseAllStatuses()">Klassikale waarschuwing</button>
         <button onclick="randomStudent()">Willekeurige leerling</button>
         <button onclick="resetRandom()">Reset willekeurige</button>
-       
-
-
         <div class="toolbar-right">
-
             <button onclick="toggleLayoutControls()" id="layoutToggleBtn"
-
                     title="Klasopstelling aanpassen.">✏️</button>
-
             <div id="layoutControls" style="display:none; gap:8px; align-items:center;">
-
                 <div class="bank-count-group"
-
                      title="Aantal banken (2 zitplaatsen per bank) voor deze klas.">
-
                     <label for="bankCountInput">Banken:</label>
-
                     <input type="number" id="bankCountInput" min="1" max="40">
-
                 </div>
-
                 <div class="bank-count-group"
-
                      title="Aantal banken naast elkaar in een rij.">
-
                     <label for="bankColsInput">Per rij:</label>
-
                     <input type="number" id="bankColsInput" min="1" max="12">
-
                 </div>
-
                 <button onclick="applyLayout()">Toepassen</button>
-
             </div>
-
-            <button onclick="syncClass()" title="Synchroniseer klas na wijziging in klassenbeheer.">
-
-                🔄
-
-            </button>
-
-            <button onclick="exportPDF()" title="Download zitplan als PDF.">
-
-                📄
-
-            </button>
-
-            <button onclick="showHelp()" title="Handleiding">
-
-                ℹ️
-
-            </button>
-
+            <button onclick="exportPDF()" title="Download zitplan als PDF.">📄</button>
+            <button onclick="showHelp()" title="Handleiding">ℹ️</button>
         </div>
-
     </div>
-
     <div id="seatPlan" class="seat-plan"></div>
-
     <p>
-
         <b>Linkerklik</b> = kleur wijzigen ·
-
         <b>Rechterklik</b> = verplaatsen
-
     </p>
-
 </div>
 
 <!-- KLASSENBEHEER -->
-
 <div id="klassen" class="tab">
-
     <h3>Backup</h3>
-
     <button onclick="downloadBackup()">Backup maken</button>
-
     <button onclick="uploadBackup()">Backup laden</button>
-
     <input type="file" id="backupInput" accept=".json" style="display:none">
-
     <h3>Bestaande klassen</h3>
-
     <div id="classList"></div>
-
     <h3>Nieuwe klas</h3>
-
     <div class="new-class-row">
-
-        <button class="primary-button" onclick="openAddClassModal()">
-
-            ➕ Nieuwe klas
-
-        </button>
-
+        <button class="primary-button" onclick="openAddClassModal()">➕ Nieuwe klas</button>
     </div>
-
 </div>
 
+<!-- NOTA'S -->
 <div id="notas" class="tab">
-
     <h2>Leerlingennota's</h2>
+    <button onclick="clearNotes()">🧹 Alle nota's wissen</button>
+    <div id="notesContainer" style="margin-top:15px;"></div>
+</div>
 
-    <button onclick="clearNotes()">
-        🧹 Alle nota's wissen
-    </button>
-
-    <div id="notesContainer"
-         style="margin-top:15px;">
+<!-- GROEPEN -->
+<div id="groepen" class="tab">
+    <h2>Groepen maken</h2>
+    <p>Verdeel de leerlingen van een klas willekeurig in groepen. Je kunt leerlingen daarna handmatig naar een andere groep verplaatsen. De indeling blijft alleen bewaard zolang deze pagina geopend is en wordt niet in de back-up opgeslagen.</p>
+    <div class="groups-toolbar">
+        <label for="groupsClassSelect">Klas:</label>
+        <select id="groupsClassSelect"></select>
+        <label for="groupSizeInput">Leerlingen per groep:</label>
+        <input type="number" id="groupSizeInput" min="1" max="100" value="4">
+        <button class="primary-button" id="generateGroupsBtn" type="button">🎲 Maak groepen</button>
+        <button id="printGroupsBtn" type="button">🖨️ Afdrukken</button>
     </div>
-
+    <p id="groupsMessage" role="status" aria-live="polite"></p>
+    <div id="groupsContainer"></div>
 </div>
 
 <!-- WELKOMST MODAL -->
-
 <div id="welcomeModalBackdrop" class="modal-backdrop">
-
     <div class="modal">
-
         <h2>Welkom bij Klasmanager!</h2>
-
-        <p>
-
-            Met Klasmanager kan je eenvoudig je klassen en zitplannen beheren.
-
-        </p>
-
+        <p>Met Klasmanager kan je eenvoudig je klassen en zitplannen beheren.</p>
         <h3>Zo werkt het:</h3>
-
         <ul>
-
-            <li>
-
-                <strong>➕ Nieuwe klas</strong> –
-
-                maak een klas aan met naam, aantal banken en leerlingen.
-
-            </li>
-
-            <li>
-
-                <strong>Linkerklik</strong> –
-
-                verander de kleur van een leerling.
-
-            </li>
-
-            <li>
-
-                <strong>Rechterklik</strong> –
-
-                verplaats een leerling naar een andere plaats.
-
-            </li>
-
-            <li>
-
-                <strong>📗 / 📕</strong> –
-
-                geef aan of het materiaal in orde is.
-
-            </li>
-
-            <li>
-
-                <strong>🔄 Synchroniseren</strong> –
-
-                werk het zitplan bij wanneer de leerlingenlijst gewijzigd is.
-
-            </li>
-
-            <li>
-
-                <strong>📄</strong> –
-
-                exporteer het huidige zitplan als PDF.
-
-            </li>
-
-            <li>
-
-                <strong>Backup maken</strong> –
-
-                bewaar al je klassen en zitplannen in een bestand.
-
-            </li>
-
+            <li><strong>➕ Nieuwe klas</strong> – maak een klas aan met naam, aantal banken en leerlingen.</li>
+            <li><strong>Linkerklik</strong> – verander de kleur van een leerling.</li>
+            <li><strong>Rechterklik</strong> – verplaats een leerling naar een andere plaats.</li>
+            <li><strong>📗 / 📕</strong> – geef aan of het materiaal in orde is.</li>
+            <li><strong>🔄 Synchroniseren</strong> – werk het zitplan bij wanneer de leerlingenlijst gewijzigd is.</li>
+            <li><strong>📄</strong> – exporteer het huidige zitplan als PDF.</li>
+            <li><strong>Backup maken</strong> – bewaar al je klassen en zitplannen in een bestand.</li>
         </ul>
-
-        <p>
-
-            Je hebt momenteel nog geen klas. Maak hieronder je eerste klas aan.
-
-        </p>
-
+        <p>Je hebt momenteel nog geen klas. Maak hieronder je eerste klas aan.</p>
         <div class="modal-buttons">
-
-            <button
-
-                class="primary-button"
-
-                onclick="startFirstClass()">
-
-                ➕ Eerste klas aanmaken
-
-            </button>
-
+            <button class="primary-button" onclick="startFirstClass()">➕ Eerste klas aanmaken</button>
         </div>
-
     </div>
-
 </div>
 
 <!-- KLAS MODAL -->
-
 <div id="classModalBackdrop" class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
-
     <div class="modal">
-
         <h2 id="classModalTitle">Nieuwe klas</h2>
-
         <div class="form-row">
-
             <label for="modalClassName">Naam klas</label>
-
             <input id="modalClassName" placeholder="Bijv. 1A">
-
         </div>
-
         <div class="form-row">
-
             <label for="modalClassBanks">Aantal banken (steeds met 2 leerlingen)</label>
-
             <input id="modalClassBanks" type="number" min="1" max="40" value="12">
-
         </div>
-
         <div class="form-row">
-
             <label for="modalClassCols">Banken per rij</label>
-
             <input id="modalClassCols" type="number" min="1" max="12" value="3">
-
         </div>
-
         <div class="form-row">
-
             <label for="modalStudents">Leerlingen<br><small>(één per regel)</small></label>
-
             <textarea id="modalStudents" placeholder="Jan Janssens&#10;Marie Peeters&#10;..."></textarea>
-
         </div>
-
         <div class="modal-buttons">
-
             <button onclick="closeClassModal()">Annuleren</button>
-
             <button class="primary-button" id="saveClassModalButton"
-
                     onclick="saveClassFromModal()">Klas toevoegen</button>
-
         </div>
-
     </div>
-
 </div>
 
+<!-- NOTA MODAL -->
 <div id="noteModalBackdrop" class="modal-backdrop">
     <div class="modal">
-
         <h2>Nota toevoegen</h2>
-
         <p id="noteStudentName"></p>
-
         <label>
             <input type="checkbox" value="Huiswerk niet gemaakt">
             Huiswerk niet gemaakt
         </label><br>
-
         <label>
             <input type="checkbox" value="Materiaal niet in orde">
             Materiaal niet in orde
         </label><br>
-
         <label>
             <input type="checkbox" value="Storend gedrag">
             Storend gedrag
         </label><br>
-
         <label>
             <input type="checkbox" value="Niet opgelet">
             Niet opgelet
         </label><br>
-
         <label>
             <input type="checkbox" value="Te laat">
             Te laat
         </label><br><br>
-
-        <input
-            id="extraReason"
-            placeholder="Andere reden">
-
+        <input id="extraReason" placeholder="Andere reden">
         <div class="modal-buttons">
-
-            <button onclick="closeNoteModal()">
-                Annuleren
-            </button>
-
-            <button
-                class="primary-button"
-                onclick="saveNoteModal()">
-
-                Opslaan
-
-            </button>
-
+            <button onclick="closeNoteModal()">Annuleren</button>
+            <button class="primary-button" onclick="saveNoteModal()">Opslaan</button>
         </div>
-
     </div>
 </div>
 
 <script>
-
 /* ===== Opslag ===== */
-
 const LS = localStorage;
-
-const get = k => JSON.parse(LS.getItem(k) || "{}");
-
+const get = k => {
+    try {
+        const raw = LS.getItem(k);
+        return raw ? JSON.parse(raw) : {};
+    } catch (error) {
+        console.warn(`Ongeldige lokale opslag voor "${k}". Standaardwaarde wordt gebruikt.`, error);
+        return {};
+    }
+};
 const set = (k, v) => LS.setItem(k, JSON.stringify(v));
 
 let classes = get("classes");
-
 let seatplans = get("seatplans");
-
 let bankCounts = get("bankCounts");
-
 let bankCols = get("bankCols");
 
 /* ===== Data ===== */
-
 const emptySeat = () => ({
     name: "",
     color: "white",
@@ -909,554 +525,341 @@ const emptySeat = () => ({
 });
 
 const DEFAULT_BANKS = 12;
-
 const DEFAULT_COLS = 3;
 
 let currentClass = null;
-
 let selectedSeatIndex = null;
-
 let highlightIndex = null;
-
 let editingClass = null;
-
 let currentNoteSeat = null;
 
 /* ===== DOM ===== */
-
 const seatPlan = document.getElementById("seatPlan");
-
 const classSelect = document.getElementById("classSelect");
-
 const classList = document.getElementById("classList");
-
 const bankCountInput = document.getElementById("bankCountInput");
-
 const bankColsInput = document.getElementById("bankColsInput");
-
 const layoutToggleBtn = document.getElementById("layoutToggleBtn");
-
 const classModalBackdrop = document.getElementById("classModalBackdrop");
-
 const classModalTitle = document.getElementById("classModalTitle");
-
 const modalClassName = document.getElementById("modalClassName");
-
 const modalClassBanks = document.getElementById("modalClassBanks");
-
 const modalClassCols = document.getElementById("modalClassCols");
-
 const modalStudents = document.getElementById("modalStudents");
-
 const saveClassModalButton = document.getElementById("saveClassModalButton");
 
 /* ===== Veilige initialisatie ===== */
+if (!classes || typeof classes !== "object" || Array.isArray(classes)) classes = {};
+if (!seatplans || typeof seatplans !== "object" || Array.isArray(seatplans)) seatplans = {};
+if (!bankCounts || typeof bankCounts !== "object" || Array.isArray(bankCounts)) bankCounts = {};
+if (!bankCols || typeof bankCols !== "object" || Array.isArray(bankCols)) bankCols = {};
 
-if (!classes || typeof classes !== "object" || Array.isArray(classes)) {
+// Herstel ontbrekende of ongeldige velden zonder bestaande geldige gegevens te wissen.
+Object.keys(classes).forEach(name => {
+    if (!Array.isArray(classes[name])) classes[name] = [];
+    classes[name] = classes[name].filter(student => typeof student === "string")
+        .map(student => student.trim()).filter(Boolean);
 
-    classes = {};
+    const storedBanks = Number.parseInt(bankCounts[name], 10);
+    const existingPlanLength = Array.isArray(seatplans[name]) ? seatplans[name].length : 0;
+    const banksFromPlan = Math.max(1, Math.ceil(existingPlanLength / 2));
+    // Een oud zitplan kan langer zijn dan de opgeslagen bankenteller. Bewaar die plaatsen.
+    const validStoredBanks = Number.isInteger(storedBanks) && storedBanks >= 1 && storedBanks <= 40;
+    const baseBanks = validStoredBanks ? storedBanks : (existingPlanLength ? banksFromPlan : DEFAULT_BANKS);
+    const banks = Math.max(baseBanks, banksFromPlan);
+    if (banks > 40) console.warn(`Klas "${name}" had meer dan 40 banken; de weergave is begrensd tot 40.`);
+    bankCounts[name] = Math.min(40, banks);
 
-}
+    const storedCols = Number.parseInt(bankCols[name], 10);
+    bankCols[name] = Number.isInteger(storedCols) && storedCols >= 1 && storedCols <= 12
+        ? storedCols : DEFAULT_COLS;
 
-if (!seatplans || typeof seatplans !== "object" || Array.isArray(seatplans)) {
-
-    seatplans = {};
-
-}
-
-if (!bankCounts || typeof bankCounts !== "object" || Array.isArray(bankCounts)) {
-
-    bankCounts = {};
-
-}
-
-if (!bankCols || typeof bankCols !== "object" || Array.isArray(bankCols)) {
-
-    bankCols = {};
-
-}
-
-
-
-getSortedClassNames().forEach(name => {
-
-    if (!seatplans[name]) {
-
-        const banks = parseInt(bankCounts[name]) || DEFAULT_BANKS;
-
-        seatplans[name] = Array(banks * 2).fill(0).map(emptySeat);
-
-    }
-
-    if (!bankCounts[name]) {
-
-        bankCounts[name] = Math.max(1, Math.round(seatplans[name].length / 2));
-
-    }
-
-    if (!bankCols[name]) {
-
-        bankCols[name] = DEFAULT_COLS;
-
-    }
-
+    const existing = Array.isArray(seatplans[name]) ? seatplans[name] : [];
+    seatplans[name] = Array.from({ length: banks * 2 }, (_, index) => {
+        const seat = existing[index];
+        if (!seat || typeof seat !== "object" || Array.isArray(seat)) return emptySeat();
+        return {
+            name: typeof seat.name === "string" ? seat.name : "",
+            color: ["white", "yellow", "orange", "red"].includes(seat.color) ? seat.color : "white",
+            book: typeof seat.book === "boolean" ? seat.book : true,
+            marked: Boolean(seat.marked),
+            notes: Array.isArray(seat.notes) ? seat.notes.filter(note => note && typeof note === "object" && !Array.isArray(note)).map(note => ({
+                klas: typeof note.klas === "string" ? note.klas : name,
+                date: typeof note.date === "string" ? note.date : "",
+                reasons: Array.isArray(note.reasons) ? note.reasons.map(String) : []
+            })) : []
+        };
+    });
 });
+// Verwijder oude opslagresten van klassen die niet meer bestaan.
+[seatplans, bankCounts, bankCols].forEach(store => Object.keys(store).forEach(name => {
+    if (!Object.prototype.hasOwnProperty.call(classes, name)) delete store[name];
+}));
 
 saveStorageOnly();
 
 /* ===== Render ===== */
-
 function getBankCount(name) {
-
     if (bankCounts[name]) return parseInt(bankCounts[name]);
-
     const plan = seatplans[name];
-
     return plan ? Math.max(1, Math.round(plan.length / 2)) : DEFAULT_BANKS;
-
 }
 
 function getBankCols(name) {
-
     return bankCols[name] || DEFAULT_COLS;
-
 }
 
 function renderSeats() {
-
     if (!currentClass || !seatplans[currentClass]) {
-
         seatPlan.innerHTML = "";
-
         return;
-
     }
 
     const data = seatplans[currentClass];
-
     const banks = getBankCount(currentClass);
-
     const cols = getBankCols(currentClass);
 
     seatPlan.style.gridTemplateColumns = `repeat(${cols}, 220px)`;
-
     seatPlan.innerHTML = "";
 
     for (let b = 0; b < banks; b++) {
-
         const bank = document.createElement("div");
-
         bank.className = "bank";
 
         for (let i = 0; i < 2; i++) {
-
             const idx = b * 2 + i;
-
             const s = data[idx];
-
             if (!s) continue;
 
             const seat = document.createElement("div");
-
             seat.className = "seat";
-
             if (!s.name) seat.classList.add("empty");
-
             if (s.color !== "white") seat.classList.add(s.color);
-
             if (s.marked) seat.classList.add("marked");
-
             if (idx === selectedSeatIndex) seat.classList.add("selected");
-
             if (idx === highlightIndex) seat.classList.add("highlight");
 
             const name = document.createElement("div");
-
             name.className = "name";
-
             name.textContent = s.name;
 
             const book = document.createElement("span");
-
             book.className = "book";
-
             book.textContent = s.book ? "📗" : "📕";
-
             book.style.display = s.name ? "block" : "none";
 
             const cross = document.createElement("span");
-
             cross.className = "cross";
-
             cross.textContent = "❌";
 
             /* Linkerklik = kleur */
-
             seat.onclick = () => {
-
                 if (!s.name) return;
-
-            const oldColor = s.color;
-
-            s.color =
-                s.color === "white" ? "yellow" :
-                s.color === "yellow" ? "orange" :
-                s.color === "orange" ? "red" :
-                "white";
-
-            if (oldColor !== "red" && s.color === "red") {
-                openNoteModal(s);
-            }
-
+                const oldColor = s.color;
+                s.color =
+                    s.color === "white" ? "yellow" :
+                    s.color === "yellow" ? "orange" :
+                    s.color === "orange" ? "red" :
+                    "white";
                 saveSeatplans();
-
                 renderSeats();
-
+                if (oldColor !== "red" && s.color === "red") {
+                    openNoteModal(s);
+                }
             };
 
             /* Rechterklik = verplaatsen */
-
             seat.oncontextmenu = e => {
-
                 e.preventDefault();
-
                 if (selectedSeatIndex === null) {
-
                     if (!s.name) return;
-
                     selectedSeatIndex = idx;
-
                 } else if (selectedSeatIndex === idx) {
-
                     selectedSeatIndex = null;
-
                 } else {
-
                     [data[selectedSeatIndex], data[idx]] =
-
                         [data[idx], data[selectedSeatIndex]];
-
                     selectedSeatIndex = null;
-
                 }
-
                 saveSeatplans();
-
                 renderSeats();
-
             };
 
             /* Boekje */
-
             book.onclick = e => {
-
                 e.stopPropagation();
-
                 if (!s.name) return;
-
                 s.book = !s.book;
-
-            // Boek niet bij → automatisch nota toevoegen
-            if (!s.book) {
-
-            if (!s.notes) {
-                s.notes = [];
-            }
-
-            s.notes.push({
-                klas: currentClass,
-                date: new Date().toLocaleString("nl-BE", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit"
-            }),
-            reasons: ["Boek niet bij"]
-        });
-
-    }
-
-    saveSeatplans();
-
-    renderSeats();
-
-};
+                if (!s.book) {
+                    if (!s.notes) s.notes = [];
+                    s.notes.push({
+                        klas: currentClass,
+                        date: new Date().toLocaleString("nl-BE", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                        }),
+                        reasons: ["Boek niet bij"]
+                    });
+                }
+                saveSeatplans();
+                renderSeats();
+            };
 
             seat.append(name, book, cross);
-
             bank.appendChild(seat);
-
         }
 
         seatPlan.appendChild(bank);
-
     }
 
     bankCountInput.value = banks;
-
     bankColsInput.value = cols;
-
 }
 
 /* ===== Opslaan ===== */
-
 function saveStorageOnly() {
-
     set("classes", classes);
-
     set("seatplans", seatplans);
-
     set("bankCounts", bankCounts);
-
     set("bankCols", bankCols);
-
 }
 
 function saveSeatplans() {
-
     set("seatplans", seatplans);
-
 }
 
 function saveBankCounts() {
-
     set("bankCounts", bankCounts);
-
 }
 
 function saveBankCols() {
-
     set("bankCols", bankCols);
-
 }
 
 /*
-
  * Alles opslaan zonder currentClass onnodig te wijzigen.
-
- * Na het opnieuw opbouwen van het selectiemenu wordt
-
- * currentClass opnieuw geselecteerd.
-
  */
-
 function saveAll() {
-
     saveStorageOnly();
-
     refreshClassList();
-
     loadClassSelect();
-
     if (currentClass && classes[currentClass]) {
-
         classSelect.value = currentClass;
-
     } else if (Object.keys(classes).length > 0) {
-
         currentClass = Object.keys(classes)[0];
-
         classSelect.value = currentClass;
-
     }
-
     selectedSeatIndex = null;
-
     highlightIndex = null;
-
     renderSeats();
-
 }
 
 /* ===== Synchroniseren ===== */
-
 function syncClass() {
-
     if (!currentClass) {
-
         alert("Er is geen klas geselecteerd.");
-
-        return;
-
+        return false;
     }
-
-    if (!classes[currentClass]) {
-
-        alert("De geselecteerde klas bestaat niet.");
-
-        return;
-
-    }
-
-    /* Maak automatisch een zitplan als dit ontbreekt */
-
-    if (!seatplans[currentClass]) {
-
-        const banks = getBankCount(currentClass);
-
-        seatplans[currentClass] =
-
-            Array(banks * 2).fill(0).map(emptySeat);
-
+    if (!Array.isArray(classes[currentClass])) {
+        alert("De geselecteerde klas bestaat niet of heeft geen geldige leerlingenlijst.");
+        return false;
     }
 
     const studentsList = classes[currentClass];
+    const banks = getBankCount(currentClass);
+    const requiredSeats = banks * 2;
+    const oldPlan = Array.isArray(seatplans[currentClass]) ? seatplans[currentClass] : [];
+    const plan = Array.from({ length: requiredSeats }, (_, index) => oldPlan[index] || emptySeat());
 
-    const plan = seatplans[currentClass];
-
-    /* Bestaande namen controleren */
-
-    plan.forEach(seat => {
-
-        if (!seat.name) return;
-
-        const match = studentsList.find(
-
-            student =>
-
-                student.trim().toLowerCase() ===
-
-                seat.name.trim().toLowerCase()
-
-        );
-
-        if (!match) {
-
-            seat.name = "";
-
-            seat.color = "white";
-
-            seat.book = true;
-
-            seat.marked = false;
-
-        } else {
-
-            seat.name = match;
-
-        }
-
-    });
-
-    /* Nieuwe leerlingen in lege plaatsen */
-
-    studentsList.forEach(student => {
-
-        const exists = plan.some(
-
-            seat =>
-
-                seat.name &&
-
-                seat.name.trim().toLowerCase() ===
-
-                student.trim().toLowerCase()
-
-        );
-
-        if (!exists) {
-
-            const empty = plan.find(seat => !seat.name);
-
-            if (empty) {
-
-                empty.name = student;
-
-                empty.color = "white";
-
-                empty.book = true;
-
-                empty.marked = false;
-
+    // Normaliseer bestaande plaatsen en verwijder leerlingen die niet meer op de lijst staan.
+    plan.forEach((seat, index) => {
+        if (!seat || typeof seat !== "object") plan[index] = emptySeat();
+        const s = plan[index];
+        if (s.name) {
+            const match = studentsList.find(student => student.trim().toLocaleLowerCase() === String(s.name).trim().toLocaleLowerCase());
+            if (!match) {
+                plan[index] = emptySeat();
+            } else {
+                s.name = match;
+                if (!Array.isArray(s.notes)) s.notes = [];
+                if (!["white", "yellow", "orange", "red"].includes(s.color)) s.color = "white";
+                if (typeof s.book !== "boolean") s.book = true;
+                s.marked = Boolean(s.marked);
             }
-
+        } else {
+            s.name = "";
+            if (!Array.isArray(s.notes)) s.notes = [];
         }
-
     });
 
+    const unplaced = [];
+    studentsList.forEach(student => {
+        const exists = plan.some(seat => seat.name && seat.name.trim().toLocaleLowerCase() === student.trim().toLocaleLowerCase());
+        if (exists) return;
+        const emptyIndex = plan.findIndex(seat => !seat.name);
+        if (emptyIndex === -1) {
+            unplaced.push(student);
+            return;
+        }
+        plan[emptyIndex] = { ...emptySeat(), name: student };
+    });
+
+    seatplans[currentClass] = plan;
     saveSeatplans();
-
     renderSeats();
+    if (unplaced.length) {
+        alert(`Synchronisatie voltooid, maar ${unplaced.length} leerling(en) konden niet op het zitplan worden geplaatst omdat er onvoldoende plaatsen zijn:
 
+${unplaced.join("\n")}
+
+Vergroot het aantal banken of verklein de leerlingenlijst.`);
+    }
+    return unplaced.length === 0;
 }
 
-/* ===== Welkoms pup-up ===== */
 
+/* ===== Welkoms pop-up ===== */
 function showWelcome() {
-
     const welcome = document.getElementById("welcomeModalBackdrop");
-
-    if (welcome) {
-
-        welcome.classList.add("open");
-
-    }
-
+    if (welcome) welcome.classList.add("open");
 }
 
 function closeWelcome() {
-
     const welcome = document.getElementById("welcomeModalBackdrop");
-
-    if (welcome) {
-
-        welcome.classList.remove("open");
-
-    }
-
+    if (welcome) welcome.classList.remove("open");
 }
 
 function startFirstClass() {
-
     closeWelcome();
-
     openAddClassModal();
-
 }
 
 /* ===== Reset / random ===== */
-
 function resetColors() {
-
     if (!currentClass || !seatplans[currentClass]) return;
-
     seatplans[currentClass].forEach(s => {
-
         s.color = "white";
-
         s.book = true;
-
     });
-
     saveSeatplans();
-
     renderSeats();
-
 }
+
 function increaseAllStatuses() {
-
     if (!currentClass || !seatplans[currentClass]) return;
-
     seatplans[currentClass].forEach(s => {
-
-        if (!s.name) return; // lege plaatsen overslaan
-
+        if (!s.name) return;
         const oldColor = s.color;
-
         s.color =
             s.color === "white" ? "yellow" :
             s.color === "yellow" ? "orange" :
             s.color === "orange" ? "red" :
-            "red"; // rood blijft rood
-
-        // Optioneel: nota openen bij rood
+            "red";
         if (oldColor !== "red" && s.color === "red") {
-
-            if (!s.notes) {
-                s.notes = [];
-            }
-
+            if (!s.notes) s.notes = [];
             s.notes.push({
                 klas: currentClass,
                 date: new Date().toLocaleString("nl-BE", {
@@ -1469,1417 +872,752 @@ function increaseAllStatuses() {
                 reasons: ["Automatisch verhoogde status"]
             });
         }
-
     });
-
     saveSeatplans();
     renderSeats();
 }
 
 function randomStudent() {
-
     if (!currentClass || !seatplans[currentClass]) return;
-
     const data = seatplans[currentClass];
-
     const indices = data
-
         .map((s, i) => ({ s, i }))
-
         .filter(o => o.s.name && !o.s.marked);
-
     if (!indices.length) {
-
         alert("Iedereen is geweest!");
-
         return;
-
     }
-
     const choice = indices[Math.floor(Math.random() * indices.length)];
-
     choice.s.marked = true;
-
     highlightIndex = choice.i;
-
     saveSeatplans();
-
     renderSeats();
-
     setTimeout(() => {
-
         highlightIndex = null;
-
         renderSeats();
-
     }, 2500);
-
 }
 
 function resetRandom() {
-
     if (!currentClass || !seatplans[currentClass]) return;
-
     seatplans[currentClass].forEach(s => s.marked = false);
-
     saveSeatplans();
-
     renderSeats();
-
 }
 
 /* ===== Aantal banken aanpassen ===== */
-
 function setBankCount(name, newCount) {
-
-    newCount = parseInt(newCount);
-
-    if (!newCount || newCount < 1) {
-
-        alert("Geef een geldig aantal banken op (minstens 1).");
-
+    newCount = Number.parseInt(newCount, 10);
+    if (!Number.isInteger(newCount) || newCount < 1 || newCount > 40) {
+        alert("Geef een geldig aantal banken op (1 t/m 40).");
         renderSeats();
-
-        return;
-
+        return false;
     }
-
-    if (!seatplans[name]) {
-
-        seatplans[name] = Array(newCount * 2).fill(0).map(emptySeat);
-
-    }
-
-    const oldSeats = seatplans[name];
-
+    const oldSeats = Array.isArray(seatplans[name]) ? seatplans[name] : [];
     const newLength = newCount * 2;
-
-    if (newLength > oldSeats.length) {
-
-        const toAdd = newLength - oldSeats.length;
-
-        for (let i = 0; i < toAdd; i++) {
-
-            oldSeats.push(emptySeat());
-
-        }
-
-    } else if (newLength < oldSeats.length) {
-
+    if (newLength < oldSeats.length) {
         const removed = oldSeats.slice(newLength);
-
-        const namesRemoved = removed
-
-            .filter(s => s.name)
-
-            .map(s => s.name);
-
+        const namesRemoved = removed.filter(seat => seat && seat.name).map(seat => seat.name);
         if (namesRemoved.length) {
-
             const ok = confirm(
-
                 "Je verkleint het aantal banken.\n\n" +
-
-                "Volgende leerlingen staan op plaatsen die verdwijnen " +
-
-                "en worden uit het zitplan verwijderd:\n\n" +
-
+                "Deze leerlingen staan op plaatsen die verdwijnen:\n\n" +
                 namesRemoved.join(", ") +
-
-                "\n\nDoorgaan?"
-
+                "\n\nZe blijven in de leerlingenlijst staan; synchroniseren kan ze opnieuw plaatsen als er ruimte is.\n\nDoorgaan?"
             );
-
             if (!ok) {
-
                 renderSeats();
-
-                return;
-
+                return false;
             }
-
         }
-
-        seatplans[name] = oldSeats.slice(0, newLength);
-
     }
-
+    seatplans[name] = Array.from({ length: newLength }, (_, index) => oldSeats[index] || emptySeat());
     bankCounts[name] = newCount;
-
     saveSeatplans();
-
     saveBankCounts();
-
     renderSeats();
-
+    return true;
 }
+
 
 function setBankCols(name, newCols) {
-
-    newCols = parseInt(newCols);
-
-    if (!newCols || newCols < 1) {
-
-        alert("Geef een geldig aantal banken per rij op (minstens 1).");
-
+    newCols = Number.parseInt(newCols, 10);
+    if (!Number.isInteger(newCols) || newCols < 1 || newCols > 12) {
+        alert("Geef een geldig aantal banken per rij op (1 t/m 12).");
+        renderSeats();
         return false;
-
     }
-
     bankCols[name] = newCols;
-
     saveBankCols();
-
     return true;
-
 }
+
 
 function applyLayout() {
-
     if (!currentClass) return;
-
-    if (!setBankCols(currentClass, bankColsInput.value)) return;
-
-    setBankCount(currentClass, bankCountInput.value);
-
+    const newCount = Number.parseInt(bankCountInput.value, 10);
+    const newCols = Number.parseInt(bankColsInput.value, 10);
+    if (!Number.isInteger(newCount) || newCount < 1 || newCount > 40) {
+        alert("Geef een geldig aantal banken op (1 t/m 40).");
+        renderSeats();
+        return;
+    }
+    if (!Number.isInteger(newCols) || newCols < 1 || newCols > 12) {
+        alert("Geef een geldig aantal banken per rij op (1 t/m 12).");
+        renderSeats();
+        return;
+    }
+    // Pas de kolommen pas toe nadat een eventuele bevestiging voor verkleinen is gegeven.
+    if (!setBankCount(currentClass, newCount)) return;
+    if (!setBankCols(currentClass, newCols)) return;
+    renderSeats();
     refreshClassList();
-
 }
 
+
 function toggleLayoutControls() {
-
     const el = document.getElementById("layoutControls");
-
     const open = el.style.display !== "none";
-
     el.style.display = open ? "none" : "flex";
-
     layoutToggleBtn.style.background = open ? "" : "#cfe3ff";
-
 }
 
 /* ===== Klassenbeheer ===== */
-
 function getSortedClassNames() {
-
     return Object.keys(classes).sort((a, b) =>
-
         a.localeCompare(b, undefined, {
-
             numeric: true,
-
             sensitivity: "base"
-
         })
-
     );
-
 }
 
 function refreshClassList() {
-
     classList.innerHTML = "";
-
     getSortedClassNames().forEach(name => {
-
         const div = document.createElement("div");
-
         div.className = "class-item";
-
         const info = document.createElement("div");
-
         info.className = "class-info";
-
         const title = document.createElement("strong");
-
         title.textContent = name;
-
         const details = document.createElement("span");
-
         details.className = "class-details";
-
         details.textContent =
-
             `${classes[name].length} leerlingen · ` +
-
             `${getBankCount(name)} banken · ` +
-
             `${getBankCols(name)} per rij`;
-
         info.append(title, details);
-
         const actions = document.createElement("span");
-
         const editButton = document.createElement("button");
-
         editButton.textContent = "✏️";
-
         editButton.title = "Klas bewerken";
-
         editButton.onclick = () => openEditClassModal(name);
-
         const deleteButton = document.createElement("button");
-
         deleteButton.textContent = "🗑️";
-
         deleteButton.title = "Klas verwijderen";
-
         deleteButton.className = "danger-button";
-
         deleteButton.onclick = () => deleteClass(name);
-
         actions.append(editButton, deleteButton);
-
         div.append(info, actions);
-
         classList.appendChild(div);
-
     });
-
+    if (typeof renderGroupsClassOptions === "function") renderGroupsClassOptions();
 }
 
 function loadClassSelect() {
-
     classSelect.innerHTML = "";
-
     const names = getSortedClassNames();
-
     names.forEach(name => {
-
         const option = document.createElement("option");
-
         option.value = name;
-
         option.textContent = name;
-
         classSelect.appendChild(option);
-
     });
-
     if (currentClass && classes[currentClass]) {
-
         classSelect.value = currentClass;
-
     } else if (names.length > 0) {
-
         currentClass = names[0];
-
         classSelect.value = currentClass;
-
     } else {
-
         currentClass = null;
-
     }
-
 }
 
 function loadClass(name) {
-
     if (!name || !classes[name]) {
-
         currentClass = null;
-
         selectedSeatIndex = null;
-
         highlightIndex = null;
-
         classSelect.value = "";
-
         seatPlan.innerHTML = "";
-
         return;
-
     }
-
     currentClass = name;
-
     selectedSeatIndex = null;
-
     highlightIndex = null;
-
-    // Zorg dat er altijd een zitplan bestaat
-
     if (!seatplans[name]) {
-
         const banks = parseInt(bankCounts[name]) || DEFAULT_BANKS;
-
-        seatplans[name] = Array(banks * 2)
-
-            .fill(0)
-
-            .map(emptySeat);
-
+        seatplans[name] = Array(banks * 2).fill(0).map(emptySeat);
     }
-
-    // Zorg dat de instellingen bestaan
-
     if (!bankCounts[name]) {
-
-        bankCounts[name] = Math.max(
-
-            1,
-
-            Math.round(seatplans[name].length / 2)
-
-        );
-
+        bankCounts[name] = Math.max(1, Math.round(seatplans[name].length / 2));
     }
-
     if (!bankCols[name]) {
-
         bankCols[name] = DEFAULT_COLS;
-
     }
-
     classSelect.value = name;
-
+    saveStorageOnly();
     renderSeats();
-
 }
 
 classSelect.onchange = () => {
-
     loadClass(classSelect.value);
-
 };
 
-function updateStudentEditor() {
-
-    // De oude leerlingeneditor bestaat niet meer in de huidige interface.
-
-    // Daarom hoeft hier niets te gebeuren.
-
-    return;
-
-}/* ===== Nieuwe klas / bewerken via popup ===== */
-
-function showWelcome() {
-
-    const welcome = document.getElementById("welcomeModalBackdrop");
-
-    if (!welcome) return;
-
-    welcome.classList.add("open");
-
-}
-
-function closeWelcome() {
-
-    const welcome = document.getElementById("welcomeModalBackdrop");
-
-    if (!welcome) return;
-
-    welcome.classList.remove("open");
-
-}
-
-function startFirstClass() {
-
-    closeWelcome();
-
-    // Open onmiddellijk het formulier om de eerste klas aan te maken
-
-    openAddClassModal();
-
-}
-
+/* ===== Nieuwe klas / bewerken via popup ===== */
 function openAddClassModal() {
-
     editingClass = null;
-
     classModalTitle.textContent = "Nieuwe klas";
-
     saveClassModalButton.textContent = "Klas toevoegen";
-
     modalClassName.value = "";
-
     modalClassBanks.value = DEFAULT_BANKS;
-
     modalClassCols.value = DEFAULT_COLS;
-
     modalStudents.value = "";
-
     classModalBackdrop.classList.add("open");
-
     setTimeout(() => modalClassName.focus(), 50);
-
 }
 
 function openEditClassModal(name) {
-
     if (!classes[name]) return;
-
     editingClass = name;
-
     classModalTitle.textContent = "Klas bewerken";
-
     saveClassModalButton.textContent = "Wijzigingen opslaan";
-
     modalClassName.value = name;
-
     modalClassBanks.value = getBankCount(name);
-
     modalClassCols.value = getBankCols(name);
-
     modalStudents.value = classes[name].join("\n");
-
     classModalBackdrop.classList.add("open");
-
 }
 
 function closeClassModal() {
-
     classModalBackdrop.classList.remove("open");
-
     editingClass = null;
-
 }
 
 function closeModalOnBackdrop(event) {
-
     if (event.target === classModalBackdrop) {
-
         closeClassModal();
-
     }
-
 }
 
 function saveClassFromModal() {
-
     const newName = modalClassName.value.trim();
-
     if (!newName) {
-
         alert("Geef een naam voor de klas op.");
-
         modalClassName.focus();
-
         return;
-
     }
-
-    const banks = parseInt(modalClassBanks.value);
-
-    const cols = parseInt(modalClassCols.value);
-
-    if (!banks || banks < 1 || banks > 40) {
-
+    const banks = Number.parseInt(modalClassBanks.value, 10);
+    const cols = Number.parseInt(modalClassCols.value, 10);
+    if (!Number.isInteger(banks) || banks < 1 || banks > 40) {
         alert("Geef een geldig aantal banken op (1 t/m 40).");
-
         return;
-
     }
-
-    if (!cols || cols < 1 || cols > 12) {
-
+    if (!Number.isInteger(cols) || cols < 1 || cols > 12) {
         alert("Geef een geldig aantal banken per rij op (1 t/m 12).");
-
         return;
-
     }
 
-    const studentList = modalStudents.value
-
-        .split("\n")
-
-        .map(s => s.trim())
-
-        .filter(Boolean);
-
-   /* ---------- Nieuwe klas ---------- */
-
-if (editingClass === null) {
-
-    if (classes[newName]) {
-
-        alert("Deze klas bestaat al.");
-
+    const studentList = modalStudents.value.split(/\r?\n/).map(student => student.trim()).filter(Boolean);
+    const seen = new Set();
+    const duplicates = [];
+    studentList.forEach(student => {
+        const key = student.toLocaleLowerCase();
+        if (seen.has(key)) duplicates.push(student);
+        seen.add(key);
+    });
+    if (duplicates.length) {
+        alert("De leerlingenlijst bevat dubbele namen. Verwijder de dubbele vermelding(en):\n\n" + [...new Set(duplicates)].join("\n"));
         return;
-
     }
 
-    classes[newName] = studentList;
+    // Klasnamen worden niet hoofdlettergevoelig als verschillend beschouwd.
+    const duplicateName = Object.keys(classes).find(name => name.toLocaleLowerCase() === newName.toLocaleLowerCase() && name !== editingClass);
+    if (duplicateName) {
+        alert(`Er bestaat al een klas met de naam "${duplicateName}".`);
+        return;
+    }
 
-    bankCounts[newName] = banks;
-
-    bankCols[newName] = cols;
-
-    seatplans[newName] = Array(banks * 2)
-
-        .fill(0)
-
-        .map(emptySeat);
-
-    // Nieuwe klas wordt onmiddellijk de actieve klas
-
-    currentClass = newName;
-
-    // Leerlingen meteen in het zitplan plaatsen
-
-    syncClass();
-
-    // Alles opnieuw opbouwen
-
-    saveStorageOnly();
-
-    refreshClassList();
-
-    loadClassSelect();
-
-    // Nieuwe klas daadwerkelijk laden
-
-    loadClass(newName);
-
-    closeClassModal();
-
-    // Automatisch naar zitplan
-
-    switchTab("zitplan");
-
-    return;
-
-}
-
-    /* ---------- Bestaande klas wijzigen ---------- */
+    if (editingClass === null) {
+        classes[newName] = studentList;
+        bankCounts[newName] = banks;
+        bankCols[newName] = cols;
+        seatplans[newName] = Array.from({ length: banks * 2 }, emptySeat);
+        currentClass = newName;
+        saveStorageOnly();
+        syncClass();
+        refreshClassList();
+        loadClassSelect();
+        loadClass(newName);
+        closeClassModal();
+        switchTab("zitplan");
+        return;
+    }
 
     const oldName = editingClass;
-
-    if (newName !== oldName && classes[newName]) {
-
-        alert("Deze klas bestaat al.");
-
-        return;
-
+    const wasCurrent = currentClass === oldName;
+    const originalPlan = Array.isArray(seatplans[oldName]) ? seatplans[oldName] : [];
+    const requiredSeats = banks * 2;
+    const removedNames = originalPlan.slice(requiredSeats).filter(seat => seat && seat.name).map(seat => seat.name);
+    if (removedNames.length) {
+        const ok = confirm(
+            "Door het aantal banken te verkleinen verdwijnen plaatsen van de volgende leerlingen uit het huidige zitplan:\n\n" +
+            removedNames.join(", ") +
+            "\n\nZe blijven in de leerlingenlijst staan en worden opnieuw geplaatst als er voldoende vrije plaatsen zijn.\n\nDoorgaan?"
+        );
+        if (!ok) return; // Nog niets gewijzigd: annuleren is volledig veilig.
     }
 
-    /*
-
-     * Bij een naamswijziging verplaatsen we alle gegevens
-
-     * naar de nieuwe sleutel.
-
-     */
+    const resizedPlan = Array.from({ length: requiredSeats }, (_, index) => originalPlan[index] || emptySeat());
+    classes[newName] = studentList;
+    seatplans[newName] = resizedPlan;
+    bankCounts[newName] = banks;
+    bankCols[newName] = cols;
 
     if (newName !== oldName) {
-
-        classes[newName] = studentList;
-
-        seatplans[newName] = seatplans[oldName] || [];
-
-        bankCounts[newName] = banks;
-
-        bankCols[newName] = cols;
-
         delete classes[oldName];
-
         delete seatplans[oldName];
-
         delete bankCounts[oldName];
-
         delete bankCols[oldName];
-
-        currentClass = newName;
-
-    } else {
-
-        classes[oldName] = studentList;
-
-        bankCounts[oldName] = banks;
-
-        bankCols[oldName] = cols;
-
-        const requiredSeats = banks * 2;
-
-        if (!seatplans[oldName]) {
-
-            seatplans[oldName] =
-
-                Array(requiredSeats).fill(0).map(emptySeat);
-
-        }
-
-        /* Zitplan vergroten indien nodig */
-
-        while (seatplans[oldName].length < requiredSeats) {
-
-            seatplans[oldName].push(emptySeat());
-
-        }
-
-        /* Bij verkleinen alleen het overtollige einde verwijderen */
-
-        if (seatplans[oldName].length > requiredSeats) {
-
-            const removed = seatplans[oldName].slice(requiredSeats);
-
-            const namesRemoved = removed
-
-                .filter(s => s.name)
-
-                .map(s => s.name);
-
-            if (namesRemoved.length) {
-
-                const ok = confirm(
-
-                    "Door het aantal banken te verkleinen verdwijnen " +
-
-                    "de volgende leerlingen uit het zitplan:\n\n" +
-
-                    namesRemoved.join(", ") +
-
-                    "\n\nDe leerlingen blijven wel in de leerlingenlijst.\n\n" +
-
-                    "Doorgaan?"
-
-                );
-
-                if (!ok) {
-
-                    /* Oude bankinstellingen herstellen */
-
-                    bankCounts[oldName] = getBankCount(oldName);
-
-                    bankCols[oldName] = getBankCols(oldName);
-
-                    return;
-
-                }
-
-            }
-
-            seatplans[oldName] =
-
-                seatplans[oldName].slice(0, requiredSeats);
-
-        }
-
     }
 
-    saveAll();
-
-    currentClass = newName;
-
-    classSelect.value = newName;
-
-    updateStudentEditor();
-
-    /*
-
-     * Synchroniseren zorgt ervoor dat gewijzigde/toegevoegde
-
-     * leerlingen in het zitplan terechtkomen.
-
-     */
-
-    syncClass();
-
+    if (wasCurrent || !currentClass || !classes[currentClass]) currentClass = newName;
+    saveStorageOnly();
+    refreshClassList();
+    loadClassSelect();
+    loadClass(currentClass);
+    if (currentClass === newName) {
+        syncClass();
+    } else {
+        // Synchroniseer ook een bewerkte klas die niet geselecteerd is, zonder de huidige selectie te wijzigen.
+        const selectedClass = currentClass;
+        currentClass = newName;
+        syncClass();
+        currentClass = selectedClass;
+        loadClass(selectedClass);
+    }
+    refreshClassList();
     closeClassModal();
-
 }
 
+
 /* ===== Klas verwijderen ===== */
-
 function deleteClass(name) {
-
     if (!classes[name]) return;
-
     if (!confirm(`Klas "${name}" verwijderen?`)) return;
-
     delete classes[name];
-
     delete seatplans[name];
-
     delete bankCounts[name];
-
     delete bankCols[name];
-
     const names = getSortedClassNames();
-
     if (names.length === 0) {
-
-        // Geen klassen meer
-
         currentClass = null;
-
         saveStorageOnly();
-
         refreshClassList();
-
         loadClassSelect();
-
-        updateStudentEditor();
-
         renderSeats();
-
-        // Toon opnieuw de welkomstboodschap
-
-        setTimeout(() => {
-
-            showWelcome();
-
-        }, 100);
-
+        setTimeout(() => showWelcome(), 100);
         return;
-
     }
-
-    // Kies automatisch de eerste klas uit de alfabetische lijst
-
     currentClass = names[0];
-
     saveStorageOnly();
-
     refreshClassList();
-
     loadClassSelect();
-
     loadClass(currentClass);
-
 }
 
 /* ===== Tabs ===== */
-
 document.getElementById("tabNav").onclick = e => {
-
     if (!e.target.dataset.tab) return;
-
     switchTab(e.target.dataset.tab);
-
 };
 
 function switchTab(tabName) {
-
     document.querySelectorAll(".tab").forEach(t => {
-
         t.classList.toggle("active", t.id === tabName);
-
     });
-
     document.querySelectorAll("#tabNav > div").forEach(d => {
-
         d.classList.toggle("active", d.dataset.tab === tabName);
-
     });
-
     if (tabName === "notas") {
-    renderNotes();
+        renderNotes();
+    }
 }
-}
-``
 
 /* ===== Backup / herstel ===== */
-
 function downloadBackup() {
-
-    const backup = {
-
-        classes: classes,
-
-        seatplans: seatplans,
-
-        bankCounts: bankCounts,
-
-        bankCols: bankCols
-
-    };
-
-    const blob = new Blob(
-
-        [JSON.stringify(backup, null, 2)],
-
-        { type: "application/json" }
-
-    );
-
-    const a = document.createElement("a");
-
-    a.href = URL.createObjectURL(blob);
-
-    a.download = "zitplan_backup.json";
-
-    a.click();
-
-    URL.revokeObjectURL(a.href);
-
+    try {
+        saveStorageOnly();
+        const backup = { classes, seatplans, bankCounts, bankCols };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "zitplan_backup.json";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        // Niet onmiddellijk intrekken: sommige browsers starten de download asynchroon.
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+        console.error("Backup maken mislukt:", error);
+        alert("De backup kon niet worden gemaakt. Controleer of de browseropslag beschikbaar is.");
+    }
 }
 
+
 function uploadBackup() {
-
     document.getElementById("backupInput").click();
-
 }
 
 document.getElementById("backupInput").onchange = e => {
-
-    const file = e.target.files[0];
-
+    const file = e.target.files && e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
-
     reader.onload = ev => {
-
         try {
-
             const data = JSON.parse(ev.target.result);
-
-            if (!data.classes || !data.seatplans) {
-
-                alert("Ongeldige backup.");
-
-                return;
-
+            if (!data || typeof data !== "object" || Array.isArray(data) ||
+                !data.classes || typeof data.classes !== "object" || Array.isArray(data.classes) ||
+                !data.seatplans || typeof data.seatplans !== "object" || Array.isArray(data.seatplans)) {
+                throw new Error("De backup mist geldige klassen of zitplannen.");
             }
 
-            classes = data.classes;
+            // Eerst volledig controleren en normaliseren in tijdelijke variabelen.
+            const nextClasses = {};
+            const nextSeatplans = {};
+            const nextBankCounts = data.bankCounts && typeof data.bankCounts === "object" && !Array.isArray(data.bankCounts) ? { ...data.bankCounts } : {};
+            const nextBankCols = data.bankCols && typeof data.bankCols === "object" && !Array.isArray(data.bankCols) ? { ...data.bankCols } : {};
 
-            seatplans = data.seatplans;
-
-            bankCounts = data.bankCounts || {};
-
-            bankCols = data.bankCols || {};
-
-            getSortedClassNames().forEach(name => {
-
-                if (!seatplans[name]) {
-
-                    const banks =
-
-                        parseInt(bankCounts[name]) || DEFAULT_BANKS;
-
-                    seatplans[name] =
-
-                        Array(banks * 2).fill(0).map(emptySeat);
-
+            Object.keys(data.classes).forEach(name => {
+                if (typeof name !== "string" || !name.trim() || !Array.isArray(data.classes[name]) ||
+                    !data.classes[name].every(student => typeof student === "string")) {
+                    throw new Error(`Ongeldige leerlingenlijst voor klas "${name}".`);
                 }
-
-                if (!bankCounts[name]) {
-
-                    bankCounts[name] =
-
-                        Math.max(1, Math.round(seatplans[name].length / 2));
-
+                nextClasses[name] = data.classes[name].map(student => student.trim()).filter(Boolean);
+                const storedPlan = data.seatplans[name];
+                const storedBankCount = Number.parseInt(nextBankCounts[name], 10);
+                const banksFromPlan = Array.isArray(storedPlan) ? Math.max(1, Math.ceil(storedPlan.length / 2)) : 1;
+                const validStoredBankCount = Number.isInteger(storedBankCount) && storedBankCount >= 1 && storedBankCount <= 40;
+                const baseBanks = validStoredBankCount ? storedBankCount : (Array.isArray(storedPlan) ? banksFromPlan : DEFAULT_BANKS);
+                const banks = Math.max(baseBanks, banksFromPlan);
+                if (banks > 40) throw new Error(`Klas "${name}" bevat meer dan 40 banken.`);
+                const storedCols = Number.parseInt(nextBankCols[name], 10);
+                nextBankCounts[name] = banks;
+                nextBankCols[name] = Number.isInteger(storedCols) && storedCols >= 1 && storedCols <= 12 ? storedCols : DEFAULT_COLS;
+                if (storedPlan !== undefined && !Array.isArray(storedPlan)) {
+                    throw new Error(`Ongeldig zitplan voor klas "${name}".`);
                 }
-
-                if (!bankCols[name]) {
-
-                    bankCols[name] = DEFAULT_COLS;
-
-                }
-
+                const plan = Array.isArray(storedPlan) ? storedPlan : [];
+                nextSeatplans[name] = Array.from({ length: banks * 2 }, (_, index) => {
+                    const seat = plan[index];
+                    if (seat === undefined || seat === null) return emptySeat();
+                    if (typeof seat !== "object" || Array.isArray(seat)) throw new Error(`Ongeldige zitplaats in klas "${name}".`);
+                    return {
+                        name: typeof seat.name === "string" ? seat.name : "",
+                        color: ["white", "yellow", "orange", "red"].includes(seat.color) ? seat.color : "white",
+                        book: typeof seat.book === "boolean" ? seat.book : true,
+                        marked: Boolean(seat.marked),
+                        notes: Array.isArray(seat.notes) ? seat.notes.filter(note => note && typeof note === "object" && !Array.isArray(note)).map(note => ({
+                            klas: typeof note.klas === "string" ? note.klas : name,
+                            date: typeof note.date === "string" ? note.date : "",
+                            reasons: Array.isArray(note.reasons) ? note.reasons.map(String) : []
+                        })) : []
+                    };
+                });
             });
 
-            const classNames = getSortedClassNames();
+            Object.keys(nextBankCounts).forEach(name => { if (!Object.prototype.hasOwnProperty.call(nextClasses, name)) delete nextBankCounts[name]; });
+            Object.keys(nextBankCols).forEach(name => { if (!Object.prototype.hasOwnProperty.call(nextClasses, name)) delete nextBankCols[name]; });
 
-            currentClass = classNames.length > 0
-                ? classNames[0]
-                : null;
-
-            /* Backup permanent opslaan */
+            // Pas de app-status pas aan nadat de hele backup succesvol is gevalideerd.
+            classes = nextClasses;
+            seatplans = nextSeatplans;
+            bankCounts = nextBankCounts;
+            bankCols = nextBankCols;
+            currentClass = getSortedClassNames()[0] || null;
+            selectedSeatIndex = null;
+            highlightIndex = null;
             saveStorageOnly();
-
             refreshClassList();
             loadClassSelect();
-
             if (currentClass) {
                 loadClass(currentClass);
+                closeWelcome();
             } else {
-                updateStudentEditor();
                 renderSeats();
-
-                setTimeout(() => {
-                    showWelcome();
-                }, 100);
+                showWelcome();
             }
-
-alert("Backup succesvol geladen!");
-
-/* Belangrijk: de ingeladen backup permanent opslaan */
-saveStorageOnly();
-
-
+            renderNotes();
+            alert("Backup succesvol geladen!");
         } catch (err) {
-
-            console.error(err);
-
-            alert("Fout in backupbestand.");
-
+            console.error("Backup laden mislukt:", err);
+            alert("Backup niet geladen. Het bestand is ongeldig of beschadigd. Je bestaande gegevens zijn behouden.");
+        } finally {
+            e.target.value = "";
         }
-
-        e.target.value = "";
-
     };
-
+    reader.onerror = () => {
+        alert("Het backupbestand kon niet worden gelezen.");
+        e.target.value = "";
+    };
     reader.readAsText(file);
-
 };
 
 /* ===== Handleiding ===== */
-
 function showHelp() {
-
     alert(
-
 `KLASMANAGER
 
 ZITPLAN
 
 • Linkerklik op een leerling: kleur wijzigen
-
   Wit → Geel → Oranje → Rood
 
 • Rechterklik:
-
   Eerste klik: leerling selecteren
-
   Tweede klik: plaats wisselen
 
 • Klik op het boekje:
-
   📗 = materiaal in orde
-
   📕 = materiaal niet in orde
 
 • Willekeurige leerling:
-
   kiest telkens een leerling die nog niet aan bod kwam.
 
 • Reset willekeurige:
-
   maakt alle leerlingen opnieuw beschikbaar.
 
 • Reset kleuren:
-
   verwijdert alle kleuren en zet alle boekjes op groen.
 
 • ✏️ Klasopstelling:
-
   pas het aantal banken en banken per rij aan.
 
 • 🔄 Synchroniseren:
-
   werkt het zitplan bij volgens de leerlingenlijst.
 
 • ➕ Nieuwe klas:
-
   maak in één pop-up een klas aan met naam,
-
   aantal banken, banken per rij en leerlingen.
 
 • ✏️ Bewerken:
-
   dezelfde pop-up kan later opnieuw gebruikt worden
-
   om een klas volledig te wijzigen.
 
 • 📄 PDF:
-
   exporteert het huidige zitplan.
 
 KLASSENBEHEER
 
 • Backup maken en terug inladen
-
 • Klassen toevoegen
-
 • Klassen bewerken
-
 • Klassen verwijderen`
-
     );
-
 }
 
 /* ===== PDF ===== */
-
 async function exportPDF() {
-
     if (!currentClass || !seatplans[currentClass]) {
-
         alert("Er is geen klas geselecteerd.");
-
         return;
-
+    }
+    if (!window.jspdf || !window.jspdf.jsPDF || typeof window.html2canvas !== "function") {
+        alert("PDF-export is niet beschikbaar. Controleer je internetverbinding en laad de pagina opnieuw.");
+        return;
     }
 
     const { jsPDF } = window.jspdf;
-
     const element = document.getElementById("seatPlan");
-
+    const exportClass = currentClass;
     const oldHighlight = highlightIndex;
-
     const oldSelected = selectedSeatIndex;
+    let clone = null;
+    try {
+        highlightIndex = null;
+        selectedSeatIndex = null;
+        renderSeats();
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-    highlightIndex = null;
+        clone = element.cloneNode(true);
+        clone.querySelectorAll(".book, .cross").forEach(el => el.remove());
+        clone.querySelectorAll(".seat").forEach(seat => {
+            seat.style.background = "white";
+            seat.style.color = "black";
+            seat.style.border = "1px solid #555";
+            seat.style.opacity = "1";
+            seat.style.transform = "none";
+            seat.style.outline = "none";
+        });
+        clone.style.position = "fixed";
+        clone.style.left = "-10000px";
+        clone.style.top = "0";
+        clone.style.background = "white";
+        clone.style.margin = "0";
+        clone.style.padding = "20px";
+        clone.style.width = `${Math.max(element.scrollWidth, 1)}px`;
+        document.body.appendChild(clone);
 
-    selectedSeatIndex = null;
+        // Lagere resolutie en JPEG-compressie verkleinen de PDF aanzienlijk.
+        // 1.5 behoudt doorgaans voldoende scherpte voor een afdrukbaar zitplan.
+        const canvas = await html2canvas(clone, {
+            scale: 1.5,
+            backgroundColor: "#ffffff",
+            useCORS: true
+        });
+        const pdf = new jsPDF({
+            orientation: "landscape",
+            unit: "mm",
+            format: "a4",
+            compress: true
+        });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(22);
+        pdf.text(exportClass, pageWidth / 2, 18, { align: "center" });
 
-    renderSeats();
-
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    const clone = element.cloneNode(true);
-
-    clone.querySelectorAll(".book, .cross").forEach(el => el.remove());
-
-    clone.querySelectorAll(".seat").forEach(seat => {
-
-        seat.style.background = "white";
-
-        seat.style.color = "black";
-
-        seat.style.border = "1px solid #555";
-
-        seat.style.opacity = "1";
-
-    });
-
-    clone.style.position = "absolute";
-
-    clone.style.left = "-9999px";
-
-    clone.style.top = "0";
-
-    clone.style.background = "white";
-
-    clone.style.margin = "0";
-
-    clone.style.padding = "20px";
-
-    document.body.appendChild(clone);
-
-    const canvas = await html2canvas(clone, {
-
-        scale: 2,
-
-        backgroundColor: "#ffffff"
-
-    });
-
-    document.body.removeChild(clone);
-
-    highlightIndex = oldHighlight;
-
-    selectedSeatIndex = oldSelected;
-
-    renderSeats();
-
-    const pdf = new jsPDF({
-
-        orientation: "landscape",
-
-        unit: "mm",
-
-        format: "a4"
-
-    });
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    pdf.setFont("helvetica", "bold");
-
-    pdf.setFontSize(22);
-
-    pdf.text(
-
-        currentClass,
-
-        pageWidth / 2,
-
-        18,
-
-        { align: "center" }
-
-    );
-
-    const imgData = canvas.toDataURL("image/png");
-
-    const margin = 10;
-
-    const titleHeight = 25;
-
-    const boardHeight = 18;
-
-    const boardMargin = 8;
-
-    const maxWidth = pageWidth - (margin * 2);
-
-    const maxHeight =
-
-        pageHeight -
-
-        titleHeight -
-
-        boardHeight -
-
-        boardMargin -
-
-        margin;
-
-    let imgWidth = maxWidth;
-
-    let imgHeight =
-
-        canvas.height * imgWidth / canvas.width;
-
-    if (imgHeight > maxHeight) {
-
-        imgHeight = maxHeight;
-
-        imgWidth =
-
-            canvas.width * imgHeight / canvas.height;
-
+        const imgData = canvas.toDataURL("image/jpeg", 0.78);
+        const margin = 10;
+        const titleHeight = 25;
+        const boardHeight = 18;
+        const boardMargin = 8;
+        const maxWidth = pageWidth - margin * 2;
+        const maxHeight = pageHeight - titleHeight - boardHeight - boardMargin - margin;
+        let imgWidth = maxWidth;
+        let imgHeight = canvas.height * imgWidth / canvas.width;
+        if (imgHeight > maxHeight) {
+            imgHeight = maxHeight;
+            imgWidth = canvas.width * imgHeight / canvas.height;
+        }
+        pdf.addImage(imgData, "JPEG", (pageWidth - imgWidth) / 2, titleHeight, imgWidth, imgHeight, undefined, "FAST");
+        const boardWidth = 70;
+        const boardX = (pageWidth - boardWidth) / 2;
+        const boardY = pageHeight - boardHeight - boardMargin;
+        pdf.setDrawColor(0);
+        pdf.setLineWidth(0.5);
+        pdf.rect(boardX, boardY, boardWidth, boardHeight);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(14);
+        pdf.text("BORD", pageWidth / 2, boardY + 11, { align: "center" });
+        const safeName = exportClass.replace(/[\\/:*?"<>|]/g, "-").trim() || "klas";
+        pdf.save(`zitplan-${safeName}.pdf`);
+    } catch (error) {
+        console.error("PDF-export mislukt:", error);
+        alert("Het zitplan kon niet naar PDF worden geëxporteerd. Je zitplan is niet gewijzigd.");
+    } finally {
+        if (clone && clone.parentNode) clone.parentNode.removeChild(clone);
+        highlightIndex = oldHighlight;
+        selectedSeatIndex = oldSelected;
+        renderSeats();
     }
-
-    const x = (pageWidth - imgWidth) / 2;
-
-    pdf.addImage(
-
-        imgData,
-
-        "PNG",
-
-        x,
-
-        titleHeight,
-
-        imgWidth,
-
-        imgHeight
-
-    );
-
-    const boardWidth = 70;
-
-    const boardX = (pageWidth - boardWidth) / 2;
-
-    const boardY =
-
-        pageHeight - boardHeight - boardMargin;
-
-    pdf.setDrawColor(0);
-
-    pdf.setLineWidth(0.5);
-
-    pdf.rect(
-
-        boardX,
-
-        boardY,
-
-        boardWidth,
-
-        boardHeight
-
-    );
-
-    pdf.setFont("helvetica", "bold");
-
-    pdf.setFontSize(14);
-
-    pdf.text(
-
-        "BORD",
-
-        pageWidth / 2,
-
-        boardY + 11,
-
-        { align: "center" }
-
-    );
-
-    pdf.save("zitplan-" + currentClass + ".pdf");
-
 }
 
-/* ===== Init ===== */
 
-function initializeApp() {
-
-    refreshClassList();
-
-    loadClassSelect();
-
-    const names = getSortedClassNames();
-
-    if (names.length === 0) {
-
-        // Geen enkele klas aanwezig
-
-        currentClass = null;
-
-        classSelect.innerHTML = "";
-
-        seatPlan.innerHTML = "";
-
-        setTimeout(() => {
-
-            showWelcome();
-
-        }, 200);
-
-        return;
-
-    }
-
-    // Er zijn klassen aanwezig:
-
-    // laad automatisch de eerste alfabetisch gesorteerde klas.
-
-    if (!currentClass || !classes[currentClass]) {
-
-        currentClass = names[0];
-
-    }
-
-    loadClass(currentClass);
-
-}
-
+/* ===== Nota's ===== */
 function openNoteModal(seat) {
-
     currentNoteSeat = seat;
-
-    document.getElementById(
-        "noteStudentName"
-    ).textContent = seat.name;
-
-    document
-        .querySelectorAll(
-            '#noteModalBackdrop input[type="checkbox"]'
-        )
+    document.getElementById("noteStudentName").textContent = seat.name;
+    document.querySelectorAll('#noteModalBackdrop input[type="checkbox"]')
         .forEach(cb => cb.checked = false);
-
-    document.getElementById(
-        "extraReason"
-    ).value = "";
-
-    document
-        .getElementById("noteModalBackdrop")
-        .classList.add("open");
+    document.getElementById("extraReason").value = "";
+    document.getElementById("noteModalBackdrop").classList.add("open");
 }
 
 function closeNoteModal() {
-
-    document
-        .getElementById("noteModalBackdrop")
-        .classList.remove("open");
+    document.getElementById("noteModalBackdrop").classList.remove("open");
+    currentNoteSeat = null;
 }
 
 function saveNoteModal() {
-
     if (!currentNoteSeat) return;
-
-    if (!currentNoteSeat.notes) {
-        currentNoteSeat.notes = [];
-    }
+    if (!currentNoteSeat.notes) currentNoteSeat.notes = [];
 
     const reasons = [];
-
-    document
-        .querySelectorAll(
-            '#noteModalBackdrop input[type="checkbox"\]:checked'
-        )
+    // FIX: de selector was kapot (ongeldige "\" in het attribuut)
+    document.querySelectorAll('#noteModalBackdrop input[type="checkbox"]:checked')
         .forEach(cb => reasons.push(cb.value));
 
-    const extra =
-        document
-            .getElementById("extraReason")
-            .value
-            .trim();
-
-    if (extra) {
-        reasons.push(extra);
-    }
+    const extra = document.getElementById("extraReason").value.trim();
+    if (extra) reasons.push(extra);
 
     if (reasons.length > 0) {
-
         currentNoteSeat.notes.push({
-
-    klas: currentClass,
-
-    date: new Date()
-        .toLocaleString("nl-BE", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-        }),
-
-    reasons: reasons
-});
-
+            klas: currentClass,
+            date: new Date().toLocaleString("nl-BE", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }),
+            reasons: reasons
+        });
         saveSeatplans();
+        renderNotes();
     }
-
     closeNoteModal();
 }
 
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
 function renderNotes() {
-
-    const container =
-        document.getElementById("notesContainer");
-
+    const container = document.getElementById("notesContainer");
     if (!container) return;
 
     let rows = "";
-
     Object.keys(seatplans).forEach(className => {
-
-    seatplans[className].forEach(seat => {
-
-
-        if (
-            !seat.name ||
-            !seat.notes ||
-            seat.notes.length === 0
-        ) return;
-
-        seat.notes.forEach((note, index) => {
-
-            rows += `
-                <tr>
-                    <td>${note.date}</td>
-                    <td>${note.klas || className}</td>
-                    <td>${seat.name}</td>
-                    <td>${note.reasons.join(", ")}</td>
-                    <td>
-                        <button onclick="
-                            deleteNote(
-                                '${className}',
-                                '${seat.name}',
-                                ${index}
-                            )
-                        ">
-                        🗑️
-                        </button>
-                    </td>
-                </tr>
-            `;
+        if (!Array.isArray(seatplans[className])) return;
+        seatplans[className].forEach((seat, seatIndex) => {
+            if (!seat || typeof seat !== "object" || !seat.name || !Array.isArray(seat.notes) || seat.notes.length === 0) return;
+            seat.notes.forEach((note, noteIndex) => {
+                // FIX: namen veilig weergeven (escapeHtml) en knoppen via data-attributen
+                if (!note || typeof note !== "object") return;
+                rows += `
+                    <tr>
+                        <td>${escapeHtml(note.date || "")}</td>
+                        <td>${escapeHtml(note.klas || className)}</td>
+                        <td>${escapeHtml(seat.name)}</td>
+                        <td>${escapeHtml((Array.isArray(note.reasons) ? note.reasons : []).join(", "))}</td>
+                        <td>
+                            <button class="delete-note-btn"
+                                    data-class="${escapeHtml(className)}"
+                                    data-seat="${seatIndex}"
+                                    data-note="${noteIndex}"
+                                    title="Nota verwijderen">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
         });
     });
 
-    });
-
     if (!rows) {
-
-        container.innerHTML =
-            "<p>Geen nota's aanwezig.</p>";
-
+        container.innerHTML = "<p>Geen nota's aanwezig.</p>";
         return;
     }
 
     container.innerHTML = `
         <table class="notes-table">
-
             <thead>
                 <tr>
                     <th>Datum / Uur</th>
@@ -2889,56 +1627,196 @@ function renderNotes() {
                     <th>Actie</th>
                 </tr>
             </thead>
-
             <tbody>
                 ${rows}
             </tbody>
-
         </table>
     `;
 }
 
-function deleteNote(className, studentName, index) {
+/* FIX: verwijderen via event delegation met data-attributen
+   (werkte vroeger niet bij namen met bijv. een apostrof) */
+document.getElementById("notesContainer").addEventListener("click", e => {
+    const btn = e.target.closest(".delete-note-btn");
+    if (!btn) return;
+    deleteNote(btn.dataset.class, parseInt(btn.dataset.seat), parseInt(btn.dataset.note));
+});
 
-    const seat =
-        seatplans[className]
-        .find(s => s.name === studentName);
-
-    if (!seat) return;
-
-    seat.notes.splice(index, 1);
-
+function deleteNote(className, seatIndex, noteIndex) {
+    const plan = seatplans[className];
+    if (!Array.isArray(plan) || !Number.isInteger(seatIndex) || !Number.isInteger(noteIndex) || !plan[seatIndex]) return;
+    const seat = plan[seatIndex];
+    if (!Array.isArray(seat.notes) || noteIndex < 0 || noteIndex >= seat.notes.length) return;
+    seat.notes.splice(noteIndex, 1);
     saveSeatplans();
     renderNotes();
 }
 
+
 function clearNotes() {
-
-    if (
-        !confirm(
-            "Alle nota's verwijderen?"
-        )
-    ) return;
-
+    if (!confirm("Alle nota's verwijderen?")) return;
     Object.keys(seatplans).forEach(className => {
-
-    seatplans[className].forEach(seat => {
-
-        seat.notes = [];
-
+        if (!Array.isArray(seatplans[className])) return;
+        seatplans[className].forEach(seat => {
+            if (seat && typeof seat === "object") seat.notes = [];
+        });
     });
-
-});
-
     saveSeatplans();
-
     renderNotes();
+}
+
+
+
+/* ===== Groepen: tijdelijk in het geheugen (niet in localStorage/back-up) ===== */
+const groupsClassSelect = document.getElementById("groupsClassSelect");
+const groupSizeInput = document.getElementById("groupSizeInput");
+const groupsContainer = document.getElementById("groupsContainer");
+const groupsMessage = document.getElementById("groupsMessage");
+// Per klas een tijdelijke lijst met leerling-ID's. Deze variabele verdwijnt bij het sluiten/herladen.
+const sessionGroups = Object.create(null);
+let groupSourceStudents = Object.create(null);
+
+function renderGroupsClassOptions() {
+    if (!groupsClassSelect) return;
+    const previous = groupsClassSelect.value;
+    groupsClassSelect.replaceChildren();
+    getSortedClassNames().forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        groupsClassSelect.appendChild(option);
+    });
+    if (previous && classes[previous]) groupsClassSelect.value = previous;
+    else if (currentClass && classes[currentClass]) groupsClassSelect.value = currentClass;
+    else if (groupsClassSelect.options.length) groupsClassSelect.selectedIndex = 0;
+    renderGroups();
+}
+
+function generateGroups() {
+    const className = groupsClassSelect.value;
+    if (!className || !Array.isArray(classes[className])) {
+        groupsMessage.textContent = "Maak eerst een klas aan in Klassenbeheer.";
+        groupsContainer.replaceChildren();
+        return;
+    }
+    const size = Number.parseInt(groupSizeInput.value, 10);
+    if (!Number.isInteger(size) || size < 1 || size > 100) {
+        alert("Geef een geldig aantal leerlingen per groep op (1–100).");
+        groupSizeInput.focus();
+        return;
+    }
+    const students = classes[className].map((name, id) => ({ id, name }));
+    // Fisher–Yates shuffle voor een willekeurige volgorde.
+    for (let i = students.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [students[i], students[j]] = [students[j], students[i]];
+    }
+    const groups = [];
+    for (let i = 0; i < students.length; i += size) {
+        groups.push(students.slice(i, i + size).map(student => student.id));
+    }
+    sessionGroups[className] = groups;
+    groupSourceStudents[className] = classes[className].slice();
+    renderGroups();
+}
+
+function moveGroupStudent(studentId, targetGroupIndex) {
+    const className = groupsClassSelect.value;
+    const groups = sessionGroups[className];
+    if (!Array.isArray(groups)) return;
+    const sourceGroupIndex = groups.findIndex(group => group.includes(studentId));
+    if (sourceGroupIndex < 0 || !groups[targetGroupIndex] || sourceGroupIndex === targetGroupIndex) return;
+    groups[sourceGroupIndex] = groups[sourceGroupIndex].filter(id => id !== studentId);
+    groups[targetGroupIndex].push(studentId);
+    sessionGroups[className] = groups.filter(group => group.length > 0);
+    renderGroups();
+}
+
+function renderGroups() {
+    if (!groupsContainer || !groupsClassSelect) return;
+    groupsContainer.replaceChildren();
+    const className = groupsClassSelect.value;
+    if (!className || !Array.isArray(classes[className])) {
+        groupsMessage.textContent = "Er zijn nog geen klassen beschikbaar.";
+        return;
+    }
+    const source = groupSourceStudents[className];
+    const groups = sessionGroups[className];
+    if (!Array.isArray(groups)) {
+        groupsMessage.textContent = "Kies het gewenste aantal leerlingen per groep en klik op ‘Maak groepen’.";
+        return;
+    }
+    // Waarschuw wanneer de klas ondertussen gewijzigd is; laat de tijdelijke indeling intact tot opnieuw verdelen.
+    if (!source || source.length !== classes[className].length || source.some((name, i) => name !== classes[className][i])) {
+        groupsMessage.textContent = "De leerlingenlijst van deze klas is gewijzigd. Maak opnieuw groepen om de indeling bij te werken.";
+    } else {
+        const total = groups.reduce((sum, group) => sum + group.length, 0);
+        groupsMessage.textContent = `${className}: ${total} leerlingen verdeeld over ${groups.length} groepen. Verplaats leerlingen met het keuzemenu naast hun naam.`;
+    }
+    const grid = document.createElement("div");
+    grid.className = "groups-grid";
+    groups.forEach((group, groupIndex) => {
+        const card = document.createElement("section");
+        card.className = "group-card";
+        const heading = document.createElement("h3");
+        heading.textContent = `Groep ${groupIndex + 1} (${group.length})`;
+        card.appendChild(heading);
+        group.forEach(studentId => {
+            const studentName = source && source[studentId] !== undefined ? source[studentId] : classes[className][studentId];
+            if (typeof studentName !== "string") return;
+            const row = document.createElement("div");
+            row.className = "group-student";
+            const name = document.createElement("span");
+            name.textContent = studentName;
+            const select = document.createElement("select");
+            select.setAttribute("aria-label", `${studentName}: verplaats naar groep`);
+            groups.forEach((_, targetIndex) => {
+                const option = document.createElement("option");
+                option.value = String(targetIndex);
+                option.textContent = `Groep ${targetIndex + 1}`;
+                option.selected = targetIndex === groupIndex;
+                select.appendChild(option);
+            });
+            select.addEventListener("change", () => moveGroupStudent(studentId, Number.parseInt(select.value, 10)));
+            row.append(name, select);
+            card.appendChild(row);
+        });
+        grid.appendChild(card);
+    });
+    groupsContainer.appendChild(grid);
+}
+
+document.getElementById("generateGroupsBtn").addEventListener("click", generateGroups);
+document.getElementById("printGroupsBtn").addEventListener("click", () => {
+    if (!Array.isArray(sessionGroups[groupsClassSelect.value])) {
+        alert("Maak eerst groepen aan voordat je ze afdrukt.");
+        return;
+    }
+    window.print();
+});
+groupsClassSelect.addEventListener("change", renderGroups);
+
+/* ===== Init ===== */
+function initializeApp() {
+    refreshClassList();
+    loadClassSelect();
+    const names = getSortedClassNames();
+    if (names.length === 0) {
+        currentClass = null;
+        classSelect.innerHTML = "";
+        seatPlan.innerHTML = "";
+        renderNotes();
+        setTimeout(() => showWelcome(), 200);
+        return;
+    }
+    if (!currentClass || !classes[currentClass]) {
+        currentClass = names[0];
+    }
+    loadClass(currentClass);
 }
 
 initializeApp();
-
 </script>
 
 </body>
-
 </html>
