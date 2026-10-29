@@ -327,6 +327,24 @@ textarea {
     .group-student select { display: none !important; }
 }
 
+.class-postit {
+    position: fixed;
+    top: 100px;
+    left: 1000px;
+    cursor: move;
+    user-select: none;
+    width: 220px;
+    min-height: 120px;
+    background: #fff6a0;
+    border: 1px solid #d9c850;
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    white-space: pre-wrap;
+    z-index: 500;
+    font-size: 14px;
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -365,11 +383,13 @@ textarea {
                 </div>
                 <button onclick="applyLayout()">Toepassen</button>
             </div>
+            <button onclick="editPostIt()" title="Post-it voor deze klas"> 📝</button>
             <button onclick="exportPDF()" title="Download zitplan als PDF.">📄</button>
             <button onclick="showHelp()" title="Handleiding">ℹ️</button>
         </div>
     </div>
     <div id="seatPlan" class="seat-plan"></div>
+    <div id="classPostIt" class="class-postit" style="display:none"> </div>
     <p>
         <b>Linkerklik</b> = kleur wijzigen ·
         <b>Rechterklik</b> = verplaatsen
@@ -514,6 +534,7 @@ let classes = get("classes");
 let seatplans = get("seatplans");
 let bankCounts = get("bankCounts");
 let bankCols = get("bankCols");
+let classPostIts = get("classPostIts");
 
 /* ===== Data ===== */
 const emptySeat = () => ({
@@ -553,6 +574,10 @@ if (!classes || typeof classes !== "object" || Array.isArray(classes)) classes =
 if (!seatplans || typeof seatplans !== "object" || Array.isArray(seatplans)) seatplans = {};
 if (!bankCounts || typeof bankCounts !== "object" || Array.isArray(bankCounts)) bankCounts = {};
 if (!bankCols || typeof bankCols !== "object" || Array.isArray(bankCols)) bankCols = {};
+if (!classPostIts || typeof classPostIts !== "object" || Array.isArray(classPostIts)) {
+    classPostIts = {};
+}
+
 
 // Herstel ontbrekende of ongeldige velden zonder bestaande geldige gegevens te wissen.
 Object.keys(classes).forEach(name => {
@@ -725,6 +750,7 @@ function saveStorageOnly() {
     set("seatplans", seatplans);
     set("bankCounts", bankCounts);
     set("bankCols", bankCols);
+    set("classPostIts", classPostIts);
 }
 
 function saveSeatplans() {
@@ -1069,6 +1095,7 @@ function loadClass(name) {
     classSelect.value = name;
     saveStorageOnly();
     renderSeats();
+    renderPostIt();
 }
 
 classSelect.onchange = () => {
@@ -1220,6 +1247,7 @@ function deleteClass(name) {
     delete seatplans[name];
     delete bankCounts[name];
     delete bankCols[name];
+    delete classPostIts[name];
     const names = getSortedClassNames();
     if (names.length === 0) {
         currentClass = null;
@@ -1259,7 +1287,7 @@ function switchTab(tabName) {
 function downloadBackup() {
     try {
         saveStorageOnly();
-        const backup = { classes, seatplans, bankCounts, bankCols };
+        const backup = { classes, seatplans, bankCounts, bankCols, classPostIts };
         const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -1299,6 +1327,7 @@ document.getElementById("backupInput").onchange = e => {
             const nextSeatplans = {};
             const nextBankCounts = data.bankCounts && typeof data.bankCounts === "object" && !Array.isArray(data.bankCounts) ? { ...data.bankCounts } : {};
             const nextBankCols = data.bankCols && typeof data.bankCols === "object" && !Array.isArray(data.bankCols) ? { ...data.bankCols } : {};
+            const nextClassPostIts = data.classPostIts && typeof data.classPostIts === "object" && !Array.isArray(data.classPostIts) ? { ...data.classPostIts } : {};
 
             Object.keys(data.classes).forEach(name => {
                 if (typeof name !== "string" || !name.trim() || !Array.isArray(data.classes[name]) ||
@@ -1346,6 +1375,7 @@ document.getElementById("backupInput").onchange = e => {
             seatplans = nextSeatplans;
             bankCounts = nextBankCounts;
             bankCols = nextBankCols;
+            classPostIts = nextClassPostIts;
             currentClass = getSortedClassNames()[0] || null;
             selectedSeatIndex = null;
             highlightIndex = null;
@@ -1665,6 +1695,85 @@ function clearNotes() {
     renderNotes();
 }
 
+function editPostIt() {
+
+    if (!currentClass) return;
+
+    const data = classPostIts[currentClass];
+
+    document.getElementById("postItText").value =
+        data ? data.text : "";
+
+    document.getElementById("postItModalBackdrop")
+        .classList.add("open");
+}
+
+function renderPostIt() {
+    const postIt = document.getElementById("classPostIt");
+
+    if (!postIt) return;
+
+    const data = classPostIts[currentClass];
+
+    if (!data) {
+    postIt.style.display = "none";
+    return;
+}
+
+    postIt.textContent = data.text;
+    postIt.style.display = "block";
+    postIt.style.top = data.top + "px";
+    postIt.style.left = data.left + "px";
+
+    postIt.ondblclick = editPostIt;
+
+}
+
+function closePostItModal() {
+
+    document.getElementById("postItModalBackdrop")
+        .classList.remove("open");
+}
+
+function savePostItModal() {
+
+    if (!currentClass) return;
+
+    const text =
+        document.getElementById("postItText")
+            .value
+            .trim();
+
+    if (!text) {
+        delete classPostIts[currentClass];
+    } else {
+
+        const old = classPostIts[currentClass];
+
+        classPostIts[currentClass] = {
+            text: text,
+            top: old?.top || 100,
+            left: old?.left || 1000
+        };
+    }
+
+    saveStorageOnly();
+    renderPostIt();
+    closePostItModal();
+}
+
+function deletePostItFromModal() {
+
+    if (!currentClass) return;
+
+    if (!confirm("Post-it verwijderen?")) return;
+
+    delete classPostIts[currentClass];
+
+    saveStorageOnly();
+    renderPostIt();
+    closePostItModal();
+}
 
 
 /* ===== Groepen: tijdelijk in het geheugen (niet in localStorage/back-up) ===== */
@@ -1815,8 +1924,76 @@ function initializeApp() {
     loadClass(currentClass);
 }
 
+let draggingPostIt = false;
+let offsetX = 0;
+let offsetY = 0;
+
+const postItElement = document.getElementById("classPostIt");
+
+postItElement.addEventListener("mousedown", e => {
+
+    if (!currentClass) return;
+
+    draggingPostIt = true;
+
+    offsetX = e.clientX - postItElement.offsetLeft;
+    offsetY = e.clientY - postItElement.offsetTop;
+});
+
+document.addEventListener("mousemove", e => {
+
+    if (!draggingPostIt || !currentClass) return;
+
+    const left = e.clientX - offsetX;
+    const top = e.clientY - offsetY;
+
+    postItElement.style.left = left + "px";
+    postItElement.style.top = top + "px";
+
+    if (classPostIts[currentClass]) {
+        classPostIts[currentClass].left = left;
+        classPostIts[currentClass].top = top;
+    }
+});
+
+document.addEventListener("mouseup", () => {
+
+    if (!draggingPostIt) return;
+
+    draggingPostIt = false;
+    saveStorageOnly();
+});
+
 initializeApp();
 </script>
+
+<!-- POST-IT MODAL -->
+<div id="postItModalBackdrop" class="modal-backdrop">
+    <div class="modal">
+        <h2>Post-it klas</h2>
+
+        <div class="form-row">
+            <label for="postItText">Notitie</label>
+            <textarea id="postItText"></textarea>
+        </div>
+
+        <div class="modal-buttons">
+            <button class="danger-button"
+                    onclick="deletePostItFromModal()">
+                Verwijderen
+            </button>
+
+            <button onclick="closePostItModal()">
+                Annuleren
+            </button>
+
+            <button class="primary-button"
+                    onclick="savePostItModal()">
+                Opslaan
+            </button>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
