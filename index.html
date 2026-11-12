@@ -345,6 +345,27 @@ textarea {
     font-size: 14px;
 }
 
+.rule-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.rule-row select {
+    flex: 1;
+}
+
+.rule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    margin-bottom: 5px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -367,7 +388,9 @@ textarea {
         <button onclick="increaseAllStatuses()">Klassikale waarschuwing</button>
         <button onclick="randomStudent()">Willekeurige leerling</button>
         <button onclick="resetRandom()">Reset willekeurige</button>
+        
         <div class="toolbar-right">
+            <button onclick="randomizeSeatsWithRules()"title="Nieuwe zitplaatsen genereren"> 🪑 </button>
             <button onclick="toggleLayoutControls()" id="layoutToggleBtn"
                     title="Klasopstelling aanpassen.">✏️</button>
             <div id="layoutControls" style="display:none; gap:8px; align-items:center;">
@@ -449,6 +472,9 @@ textarea {
             <li><strong>Backup maken</strong> – bewaar al je klassen en zitplannen in een bestand.</li>
         </ul>
         <p>Je hebt momenteel nog geen klas. Maak hieronder je eerste klas aan.</p>
+        
+        
+
         <div class="modal-buttons">
             <button class="primary-button" onclick="startFirstClass()">➕ Eerste klas aanmaken</button>
         </div>
@@ -475,6 +501,80 @@ textarea {
             <label for="modalStudents">Leerlingen<br><small>(één per regel)</small></label>
             <textarea id="modalStudents" placeholder="Jan Janssens&#10;Marie Peeters&#10;..."></textarea>
         </div>
+        
+        <hr>
+
+<h3>Zitplaatsregels</h3>
+
+<label>
+    <input
+        type="checkbox"
+        id="avoidPreviousSeat">
+    Niet op dezelfde plaats
+</label>
+
+<br><br>
+
+<label>
+    <input
+        type="checkbox"
+        id="avoidSameNeighbour">
+    Niet naast dezelfde buur
+</label>
+
+<hr>
+
+<h4>Niet naast elkaar</h4>
+
+<div id="forbiddenPairsContainer"></div>
+
+<button
+    type="button"
+    onclick="addForbiddenPair()">
+
+    ➕ Paar toevoegen
+
+</button>
+<hr>
+
+<h4>Altijd vooraan</h4>
+
+<div class="rule-row">
+    <select id="frontStudentSelect"></select>
+    <button type="button" onclick="addFrontStudent()">
+        ➕ Toevoegen
+    </button>
+</div>
+
+<div id="frontStudentsContainer"></div>
+
+<hr>
+
+<h4>Altijd achteraan</h4>
+
+<div class="rule-row">
+    <select id="backStudentSelect"></select>
+    <button type="button" onclick="addBackStudent()">
+        ➕ Toevoegen
+    </button>
+</div>
+
+<div id="backStudentsContainer"></div>
+
+<hr>
+
+<h4>Alleen aan een bank</h4>
+
+<div class="rule-row">
+    <select id="soloStudentSelect"></select>
+    <button type="button" onclick="addSoloStudent()">
+        ➕ Toevoegen
+    </button>
+</div>
+
+<div id="soloStudentsContainer"></div>
+
+        
         <div class="modal-buttons">
             <button onclick="closeClassModal()">Annuleren</button>
             <button class="primary-button" id="saveClassModalButton"
@@ -535,6 +635,11 @@ let seatplans = get("seatplans");
 let bankCounts = get("bankCounts");
 let bankCols = get("bankCols");
 let classPostIts = get("classPostIts");
+let classRules = get("classRules");
+
+if (!classRules || typeof classRules !== "object" || Array.isArray(classRules)) {
+    classRules = {};
+}
 
 /* ===== Data ===== */
 const emptySeat = () => ({
@@ -617,7 +722,7 @@ Object.keys(classes).forEach(name => {
     });
 });
 // Verwijder oude opslagresten van klassen die niet meer bestaan.
-[seatplans, bankCounts, bankCols].forEach(store => Object.keys(store).forEach(name => {
+[seatplans, bankCounts, bankCols, classRules].forEach(store => Object.keys(store).forEach(name => {
     if (!Object.prototype.hasOwnProperty.call(classes, name)) delete store[name];
 }));
 
@@ -667,6 +772,7 @@ function renderSeats() {
             const name = document.createElement("div");
             name.className = "name";
             name.textContent = s.name;
+        
 
             const book = document.createElement("span");
             book.className = "book";
@@ -733,7 +839,12 @@ function renderSeats() {
                 renderSeats();
             };
 
-            seat.append(name, book, cross);
+
+seat.append(
+    name,
+    book,
+    cross
+);
             bank.appendChild(seat);
         }
 
@@ -751,6 +862,7 @@ function saveStorageOnly() {
     set("bankCounts", bankCounts);
     set("bankCols", bankCols);
     set("classPostIts", classPostIts);
+    set("classRules", classRules);
 }
 
 function saveSeatplans() {
@@ -930,6 +1042,204 @@ function resetRandom() {
     saveSeatplans();
     renderSeats();
 }
+
+function shuffle(array) {
+
+    for (
+        let i = array.length - 1;
+        i > 0;
+        i--
+    ) {
+
+        const j =
+            Math.floor(
+                Math.random() * (i + 1)
+            );
+
+        [
+            array[i],
+            array[j]
+        ] =
+        [
+            array[j],
+            array[i]
+        ];
+    }
+
+    return array;
+}
+
+function hasRecentNeighbour(
+    rules,
+    studentA,
+    studentB
+) {
+
+    if (
+        !rules.avoidSameNeighbour
+    ) {
+        return false;
+    }
+
+    const historyA =
+        rules.neighbourHistory?.[
+            studentA
+        ] || [];
+
+    const historyB =
+        rules.neighbourHistory?.[
+            studentB
+        ] || [];
+
+    return (
+        historyA.includes(studentB) ||
+        historyB.includes(studentA)
+    );
+}
+
+function randomizeSeatsWithRules() {
+    if (!currentClass || !Array.isArray(seatplans[currentClass])) return;
+
+    const currentPlan = seatplans[currentClass];
+    const seatCount = currentPlan.length;
+    const students = currentPlan.filter(seat => seat && typeof seat.name === "string" && seat.name.trim());
+    if (students.length > seatCount) {
+        alert("Er zijn meer leerlingen dan beschikbare plaatsen. Vergroot eerst het aantal banken.");
+        return;
+    }
+    if (!students.length) {
+        alert("Er staan geen leerlingen in het huidige zitplan.");
+        return;
+    }
+
+    const rules = classRules[currentClass] || getDefaultRules();
+    rules.frontStudents = Array.isArray(rules.frontStudents) ? rules.frontStudents : [];
+    rules.backStudents = Array.isArray(rules.backStudents) ? rules.backStudents : [];
+    rules.soloStudents = Array.isArray(rules.soloStudents) ? rules.soloStudents : [];
+    rules.forbiddenPairs = Array.isArray(rules.forbiddenPairs) ? rules.forbiddenPairs : [];
+    rules.neighbourHistory = rules.neighbourHistory && typeof rules.neighbourHistory === "object" ? rules.neighbourHistory : {};
+
+    const cols = Math.max(1, getBankCols(currentClass));
+    const rowSize = Math.min(seatCount, cols * 2);
+    const backSeats = Array.from({ length: rowSize }, (_, i) => i);
+    const frontSeats = Array.from({ length: rowSize }, (_, i) => seatCount - rowSize + i);
+    const previousPositions = new Map();
+    currentPlan.forEach((seat, index) => { if (seat && seat.name) previousPositions.set(seat.name, index); });
+
+    // Bewaar de huidige buren vóór de nieuwe indeling wordt gemaakt.
+    for (let bank = 0; bank < seatCount / 2; bank++) {
+        const left = currentPlan[bank * 2]?.name;
+        const right = currentPlan[bank * 2 + 1]?.name;
+        if (!left || !right) continue;
+        [ [left, right], [right, left] ].forEach(([a, b]) => {
+            if (!Array.isArray(rules.neighbourHistory[a])) rules.neighbourHistory[a] = [];
+            rules.neighbourHistory[a].unshift(b);
+            rules.neighbourHistory[a] = [...new Set(rules.neighbourHistory[a])].slice(0, 5);
+        });
+    }
+
+    const forbidden = (a, b) => rules.forbiddenPairs.some(pair => Array.isArray(pair) && pair.length >= 2 &&
+        ((pair[0] === a && pair[1] === b) || (pair[0] === b && pair[1] === a)));
+    const shuffle = array => {
+        const result = [...array];
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+    };
+
+    // Meerdere pogingen voorkomen dat een toevallige vroege keuze een geldige indeling blokkeert.
+    for (let attempt = 0; attempt < 250; attempt++) {
+        const plan = Array.from({ length: seatCount }, emptySeat);
+        const blockedBanks = new Set();
+        const assigned = new Set();
+        const ordered = shuffle(students).sort((a, b) => {
+            const score = student => {
+                const name = student.name;
+                return (rules.soloStudents.includes(name) ? 100 : 0) +
+                    (rules.frontStudents.includes(name) ? 30 : 0) +
+                    (rules.backStudents.includes(name) ? 30 : 0);
+            };
+            return score(b) - score(a);
+        });
+        let failed = false;
+
+        for (const student of ordered) {
+            const name = student.name;
+            const isSolo = rules.soloStudents.includes(name);
+            const mustFront = rules.frontStudents.includes(name);
+            const mustBack = rules.backStudents.includes(name);
+            if (mustFront && mustBack) { failed = true; break; }
+
+            let candidates = Array.from({ length: seatCount }, (_, i) => i).filter(index => {
+                if (plan[index].name) return false;
+                const bank = Math.floor(index / 2);
+                const partnerIndex = index % 2 === 0 ? index + 1 : index - 1;
+                const partner = plan[partnerIndex]?.name;
+                if (blockedBanks.has(bank)) return false;
+                if (isSolo && partner) return false;
+                if (!isSolo && partner && rules.soloStudents.includes(partner)) return false;
+                if (partner && forbidden(name, partner)) return false;
+                if (mustBack && !backSeats.includes(index)) return false;
+                if (mustFront && !frontSeats.includes(index)) return false;
+                return true;
+            });
+
+            // Vul altijd eerst de onderste (vooraan gelegen) zichtbare rij.
+            // De banken worden in renderSeats() van boven naar beneden getoond;
+            // daarom heeft de hoogste rij-index de laagste positie op het scherm.
+            // Pas deze prioriteit toe vóór de zachte voorkeuren voor buren/ vorige plaats,
+            // zodat die voorkeuren nooit een beschikbare lagere rij overslaan.
+            if (candidates.length > 0 && !isSolo) {
+
+    const lowestVisibleRow = Math.max(
+        ...candidates.map(index =>
+            Math.floor(Math.floor(index / 2) / cols)
+        )
+    );
+
+    candidates = candidates.filter(
+        index =>
+            Math.floor(Math.floor(index / 2) / cols)
+            === lowestVisibleRow
+    );
+}
+
+            if (rules.avoidSameNeighbour && candidates.length > 0) {
+                const fresh = candidates.filter(index => {
+                    const partner = plan[index % 2 === 0 ? index + 1 : index - 1]?.name;
+                    return !partner || !hasRecentNeighbour(rules, name, partner);
+                });
+                if (fresh.length) candidates = fresh;
+            }
+            if (rules.avoidPreviousSeat && candidates.length > 1) {
+                const previous = previousPositions.get(name);
+                const alternatives = candidates.filter(index => index !== previous);
+                if (alternatives.length) candidates = alternatives;
+            }
+
+            candidates = shuffle(candidates);
+            if (!candidates.length) { failed = true; break; }
+            const chosen = candidates[0];
+            plan[chosen] = { ...student };
+            assigned.add(name);
+            if (isSolo) blockedBanks.add(Math.floor(chosen / 2));
+        }
+
+        if (!failed && assigned.size === students.length) {
+            seatplans[currentClass] = plan;
+            classRules[currentClass] = rules;
+            saveStorageOnly();
+            renderSeats();
+            return;
+        }
+    }
+
+    alert("Er kon geen geldige nieuwe indeling worden gevonden met alle ingestelde voorkeuren. Je huidige zitplan is behouden. Controleer vooral de voorkeuren voor vooraan/achteraan, alleen zitten en verboden combinaties.");
+}
+
+
 
 /* ===== Aantal banken aanpassen ===== */
 function setBankCount(name, newCount) {
@@ -1112,8 +1422,46 @@ function openAddClassModal() {
     modalClassCols.value = DEFAULT_COLS;
     modalStudents.value = "";
     classModalBackdrop.classList.add("open");
+    document.getElementById("frontStudentsContainer").replaceChildren();
+    document.getElementById("backStudentsContainer").replaceChildren();
+    document.getElementById("soloStudentsContainer").replaceChildren();
+    ["frontStudentSelect", "backStudentSelect", "soloStudentSelect"].forEach(id => {
+        document.getElementById(id).replaceChildren(new Option("Kies leerling", ""));
+    });
     setTimeout(() => modalClassName.focus(), 50);
+    document
+    .getElementById(
+        "avoidPreviousSeat"
+    )
+    .checked = false;
+
+document
+    .getElementById(
+        "avoidSameNeighbour"
+    )
+    .checked = false;
+
+document
+    .getElementById(
+        "forbiddenPairsContainer"
+    )
+    .innerHTML = "";
 }
+
+modalStudents.addEventListener("input", () => {
+    const className = editingClass || modalClassName.value.trim();
+    if (className) {
+        renderSeatPreferenceLists(className);
+        renderForbiddenPairs(className);
+    }
+});
+modalClassName.addEventListener("input", () => {
+    const className = editingClass || modalClassName.value.trim();
+    if (className) {
+        renderSeatPreferenceLists(className);
+        renderForbiddenPairs(className);
+    }
+});
 
 function openEditClassModal(name) {
     if (!classes[name]) return;
@@ -1124,6 +1472,8 @@ function openEditClassModal(name) {
     modalClassBanks.value = getBankCount(name);
     modalClassCols.value = getBankCols(name);
     modalStudents.value = classes[name].join("\n");
+    loadClassRulesIntoModal(name);
+    renderSeatPreferenceLists(name);
     classModalBackdrop.classList.add("open");
 }
 
@@ -1180,7 +1530,7 @@ function saveClassFromModal() {
         classes[newName] = studentList;
         bankCounts[newName] = banks;
         bankCols[newName] = cols;
-        seatplans[newName] = Array.from({ length: banks * 2 }, emptySeat);
+        seatplans[newName] = Array.from({ length: banks * 2 }, emptySeat); saveRules(newName);
         currentClass = newName;
         saveStorageOnly();
         syncClass();
@@ -1217,9 +1567,19 @@ function saveClassFromModal() {
         delete seatplans[oldName];
         delete bankCounts[oldName];
         delete bankCols[oldName];
+        if (classRules[oldName]) {
+            classRules[newName] = classRules[oldName];
+            delete classRules[oldName];
+        }
+        if (classPostIts[oldName]) {
+            classPostIts[newName] = classPostIts[oldName];
+            delete classPostIts[oldName];
+        }
     }
 
     if (wasCurrent || !currentClass || !classes[currentClass]) currentClass = newName;
+    saveRules(newName);
+   
     saveStorageOnly();
     refreshClassList();
     loadClassSelect();
@@ -1248,6 +1608,7 @@ function deleteClass(name) {
     delete bankCounts[name];
     delete bankCols[name];
     delete classPostIts[name];
+    delete classRules[name];
     const names = getSortedClassNames();
     if (names.length === 0) {
         currentClass = null;
@@ -1264,6 +1625,265 @@ function deleteClass(name) {
     loadClassSelect();
     loadClass(currentClass);
 }
+
+/* ===== Nieuwe plaatsen kiezen ===== */
+
+function getDefaultRules() {
+
+    return {
+
+        avoidPreviousSeat: false,
+        avoidSameNeighbour: false,
+
+        forbiddenPairs: [],
+
+        frontStudents: [],
+        backStudents: [],
+        soloStudents: [],
+
+        neighbourHistory: {}
+    };
+}
+
+
+function loadClassRulesIntoModal(className) {
+
+    const rules =
+        classRules[className]
+        || getDefaultRules();
+
+    document
+        .getElementById(
+            "avoidPreviousSeat"
+        )
+        .checked =
+        rules.avoidPreviousSeat;
+
+    document
+        .getElementById(
+            "avoidSameNeighbour"
+        )
+        .checked =
+        rules.avoidSameNeighbour;
+
+    renderForbiddenPairs(
+        className
+    );
+    renderSeatPreferenceLists(className);
+}
+
+function saveCurrentForbiddenPairs(className) {
+
+    const rules = ensureClassRules(className);
+
+    rules.forbiddenPairs = [];
+
+    const left =
+        document.querySelectorAll(
+            "#forbiddenPairsContainer .pairA"
+        );
+
+    const right =
+        document.querySelectorAll(
+            "#forbiddenPairsContainer .pairB"
+        );
+
+    for (let i = 0; i < Math.min(left.length, right.length); i++) {
+
+        const a = left[i].value;
+        const b = right[i].value;
+
+        rules.forbiddenPairs.push([a, b]);
+    }
+}
+
+
+function renderForbiddenPairs(className) {
+    const container = document.getElementById("forbiddenPairsContainer");
+    if (!container) return;
+    container.replaceChildren();
+    const rules = ensureClassRules(className);
+    const students = getStudentsForRuleEditor(className);
+    rules.forbiddenPairs.forEach((pair, index) => {
+        const row = document.createElement("div");
+        row.style.marginBottom = "10px";
+        const first = document.createElement("select");
+        first.className = "pairA";
+        const second = document.createElement("select");
+        second.className = "pairB";
+        [first, second].forEach((select, position) => {
+            select.add(new Option("Kies leerling", ""));
+            students.forEach(student => select.add(new Option(student, student)));
+            select.value = Array.isArray(pair) ? (pair[position] || "") : "";
+        });
+        first.addEventListener("change", () =>
+    saveCurrentForbiddenPairs(className)
+);
+
+second.addEventListener("change", () =>
+    saveCurrentForbiddenPairs(className)
+);
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "❌";
+        remove.onclick = () => {
+            ensureClassRules(className).forbiddenPairs.splice(index, 1);
+            renderForbiddenPairs(className);
+        };
+        row.append(first, second, remove);
+        container.appendChild(row);
+    });
+}
+
+
+
+function getStudentsForRuleEditor(className) {
+    const modalName = modalClassName?.value.trim();
+    if (modalStudents && modalName === className && (editingClass === null || editingClass === className)) {
+        return modalStudents.value.split(/\r?\n/).map(name => name.trim()).filter(Boolean);
+    }
+    return Array.isArray(classes[className]) ? classes[className] : [];
+}
+
+function ensureClassRules(className) {
+    if (!classRules[className] || typeof classRules[className] !== "object") classRules[className] = getDefaultRules();
+    const rules = classRules[className];
+    ["frontStudents", "backStudents", "soloStudents", "forbiddenPairs"].forEach(key => {
+        if (!Array.isArray(rules[key])) rules[key] = [];
+    });
+    if (!rules.neighbourHistory || typeof rules.neighbourHistory !== "object") rules.neighbourHistory = {};
+    return rules;
+}
+
+function renderSeatPreferenceLists(className) {
+    if (!className) return;
+    const rules = ensureClassRules(className);
+    const students = getStudentsForRuleEditor(className);
+    const containers = {
+        front: document.getElementById("frontStudentsContainer"),
+        back: document.getElementById("backStudentsContainer"),
+        solo: document.getElementById("soloStudentsContainer")
+    };
+    const selects = {
+        front: document.getElementById("frontStudentSelect"),
+        back: document.getElementById("backStudentSelect"),
+        solo: document.getElementById("soloStudentSelect")
+    };
+
+    Object.keys(selects).forEach(kind => {
+        const select = selects[kind];
+        if (!select) return;
+        select.replaceChildren(new Option("Kies leerling", ""));
+        students.forEach(student => select.add(new Option(student, student)));
+    });
+
+    [ ["front", "frontStudents"], ["back", "backStudents"], ["solo", "soloStudents"] ].forEach(([kind, key]) => {
+        const container = containers[kind];
+        if (!container) return;
+        container.replaceChildren();
+        rules[key].forEach((student, index) => {
+            const row = document.createElement("div");
+            row.className = "rule-item";
+            const label = document.createElement("span");
+            label.textContent = student;
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "❌";
+            button.onclick = () => {
+                ensureClassRules(className)[key].splice(index, 1);
+                renderSeatPreferenceLists(className);
+            };
+            row.append(label, button);
+            container.appendChild(row);
+        });
+    });
+}
+
+
+
+function addPreferenceStudent(kind) {
+    const className = editingClass || modalClassName.value.trim();
+    if (!className) return;
+    const key = kind + "Students";
+    const select = document.getElementById(kind + "StudentSelect");
+    const student = select?.value;
+    if (!student) return;
+    const rules = ensureClassRules(className);
+    if (!rules[key].includes(student)) rules[key].push(student);
+    renderSeatPreferenceLists(className);
+}
+function addFrontStudent() { addPreferenceStudent("front"); }
+function addBackStudent() { addPreferenceStudent("back"); }
+function addSoloStudent() { addPreferenceStudent("solo"); }
+function removeFrontStudent(index) {
+    const name = editingClass || modalClassName.value.trim();
+    if (name) { ensureClassRules(name).frontStudents.splice(index, 1); renderSeatPreferenceLists(name); }
+}
+function removeBackStudent(index) {
+    const name = editingClass || modalClassName.value.trim();
+    if (name) { ensureClassRules(name).backStudents.splice(index, 1); renderSeatPreferenceLists(name); }
+}
+function removeSoloStudent(index) {
+    const name = editingClass || modalClassName.value.trim();
+    if (name) { ensureClassRules(name).soloStudents.splice(index, 1); renderSeatPreferenceLists(name); }
+}
+
+
+
+function addForbiddenPair() {
+
+    const className =
+        editingClass ||
+        modalClassName.value.trim();
+
+    if (!className) return;
+
+    saveCurrentForbiddenPairs(className);
+
+    classRules[className]
+        .forbiddenPairs
+        .push(["", ""]);
+
+    renderForbiddenPairs(className);
+}
+
+function removeForbiddenPair(
+    index
+) {
+
+    if (!editingClass) return;
+
+    classRules[editingClass]
+        .forbiddenPairs
+        .splice(index,1);
+
+    renderForbiddenPairs(
+        editingClass
+    );
+}
+
+function saveRules(className) {
+    const existingRules = ensureClassRules(className);
+    const nextRules = {
+        avoidPreviousSeat: Boolean(document.getElementById("avoidPreviousSeat")?.checked),
+        avoidSameNeighbour: Boolean(document.getElementById("avoidSameNeighbour")?.checked),
+        forbiddenPairs: [],
+        frontStudents: [...existingRules.frontStudents],
+        backStudents: [...existingRules.backStudents],
+        soloStudents: [...existingRules.soloStudents],
+        neighbourHistory: existingRules.neighbourHistory || {}
+    };
+    const left = document.querySelectorAll("#forbiddenPairsContainer .pairA");
+    const right = document.querySelectorAll("#forbiddenPairsContainer .pairB");
+    for (let i = 0; i < Math.min(left.length, right.length); i++) {
+        const a = left[i].value;
+        const b = right[i].value;
+        if (a && b && a !== b) nextRules.forbiddenPairs.push([a, b]);
+    }
+    classRules[className] = nextRules;
+}
+
+
 
 /* ===== Tabs ===== */
 document.getElementById("tabNav").onclick = e => {
@@ -1287,7 +1907,7 @@ function switchTab(tabName) {
 function downloadBackup() {
     try {
         saveStorageOnly();
-        const backup = { classes, seatplans, bankCounts, bankCols, classPostIts };
+        const backup = { classes, seatplans, bankCounts, bankCols, classPostIts, classRules };
         const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -1328,6 +1948,7 @@ document.getElementById("backupInput").onchange = e => {
             const nextBankCounts = data.bankCounts && typeof data.bankCounts === "object" && !Array.isArray(data.bankCounts) ? { ...data.bankCounts } : {};
             const nextBankCols = data.bankCols && typeof data.bankCols === "object" && !Array.isArray(data.bankCols) ? { ...data.bankCols } : {};
             const nextClassPostIts = data.classPostIts && typeof data.classPostIts === "object" && !Array.isArray(data.classPostIts) ? { ...data.classPostIts } : {};
+            const nextClassRules = data.classRules && typeof data.classRules === "object" && !Array.isArray(data.classRules) ? { ...data.classRules } : {};
 
             Object.keys(data.classes).forEach(name => {
                 if (typeof name !== "string" || !name.trim() || !Array.isArray(data.classes[name]) ||
@@ -1369,6 +1990,18 @@ document.getElementById("backupInput").onchange = e => {
 
             Object.keys(nextBankCounts).forEach(name => { if (!Object.prototype.hasOwnProperty.call(nextClasses, name)) delete nextBankCounts[name]; });
             Object.keys(nextBankCols).forEach(name => { if (!Object.prototype.hasOwnProperty.call(nextClasses, name)) delete nextBankCols[name]; });
+            Object.keys(nextClassRules).forEach(name => { if (!Object.prototype.hasOwnProperty.call(nextClasses, name)) delete nextClassRules[name]; });
+            Object.keys(nextClasses).forEach(name => {
+                const r = nextClassRules[name] && typeof nextClassRules[name] === "object" ? nextClassRules[name] : {};
+                nextClassRules[name] = {
+                    ...getDefaultRules(), ...r,
+                    frontStudents: Array.isArray(r.frontStudents) ? r.frontStudents.filter(v => typeof v === "string") : [],
+                    backStudents: Array.isArray(r.backStudents) ? r.backStudents.filter(v => typeof v === "string") : [],
+                    soloStudents: Array.isArray(r.soloStudents) ? r.soloStudents.filter(v => typeof v === "string") : [],
+                    forbiddenPairs: Array.isArray(r.forbiddenPairs) ? r.forbiddenPairs.filter(pair => Array.isArray(pair) && pair.length >= 2).map(pair => [String(pair[0]), String(pair[1])]) : [],
+                    neighbourHistory: r.neighbourHistory && typeof r.neighbourHistory === "object" ? r.neighbourHistory : {}
+                };
+            });
 
             // Pas de app-status pas aan nadat de hele backup succesvol is gevalideerd.
             classes = nextClasses;
@@ -1376,6 +2009,7 @@ document.getElementById("backupInput").onchange = e => {
             bankCounts = nextBankCounts;
             bankCols = nextBankCols;
             classPostIts = nextClassPostIts;
+            classRules = nextClassRules;
             currentClass = getSortedClassNames()[0] || null;
             selectedSeatIndex = null;
             highlightIndex = null;
@@ -1526,12 +2160,13 @@ async function exportPDF() {
         const boardMargin = 8;
         const maxWidth = pageWidth - margin * 2;
         const maxHeight = pageHeight - titleHeight - boardHeight - boardMargin - margin;
-        let imgWidth = maxWidth;
-        let imgHeight = canvas.height * imgWidth / canvas.width;
-        if (imgHeight > maxHeight) {
-            imgHeight = maxHeight;
-            imgWidth = canvas.width * imgHeight / canvas.height;
-        }
+        const ratioWidth = maxWidth / canvas.width;
+        const ratioHeight = maxHeight / canvas.height;
+
+        const scale = Math.min(ratioWidth, ratioHeight);
+
+        const imgWidth = canvas.width * scale;
+        const imgHeight = canvas.height * scale;
         pdf.addImage(imgData, "JPEG", (pageWidth - imgWidth) / 2, titleHeight, imgWidth, imgHeight, undefined, "FAST");
         const boardWidth = 70;
         const boardX = (pageWidth - boardWidth) / 2;
